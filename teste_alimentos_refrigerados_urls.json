@@ -1,0 +1,311 @@
+{
+  "metadata": {
+    "total_urls": 50,
+    "data_extracao": "2025-06-20T23:00:52.975039",
+    "categorias": [
+      "alimentos_refrigerados"
+    ]
+  },
+  "urls": [
+    {
+      "url": "https://www.paodeacucar.com/produto/264271/queijo-mussarela-qualita-fatiado-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368222"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/106824/queijo-mussarela-importado-fatiado-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368330"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/339743/queijo-mussarela-fatiado-president-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368349"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/478712/iogurte-desnatado-natural-danone-copo-160g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368356"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/291005/requeijao-cremoso-tradicional-danone-pote-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368367"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/51956/queijo-parmesao-ralado-vigor-pacote-100g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368381"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/34937/queijo-minas-frescal-fazenda-bela-vista-500g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368387"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/71812/margarina-cremosa-com-sal-qualy-pote-500g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368395"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/108214/queijo-mussarela-tirolez-fatiado-bandeja-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368404"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/6971/manteiga-com-sal-aviacao-pote-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368411"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/339742/queijo-prato-fatiado-president-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368418"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/1617346/queijo-parmesao-la-serenissima-ralado-120g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368426"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/279054/manteiga-de-primeira-qualidade-com-sal-tirolez-pote-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368432"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/1466430/queijo-parmesao-cilindro-president-180g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368438"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/674040/queijo-mussarela-fatiado-president-300g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368446"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/108264/queijo-prato-tirolez-fatiado-bandeja-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368455"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/80746/queijo-parmesao-ralado-faixa-azul-pacote-100g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368461"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/451125/queijo-minas-padrao-verde-campo-450g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368467"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/140452/iogurte-integral-natural-nestle-copo-170g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368472"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/80518/queijo-frescal-ultrafiltrado-light-polenghi-pote-400g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368477"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/126245/queijo-frescal-ultrafiltrado-polenghi-pote-400g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368481"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/29992/manteiga-extra-com-sal-president-gastronomique-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368488"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/1616726/queijo-tipo-brie-le-grand-130g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368494"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/168014/queijo-parmesao-gran-formaggio-pedaco-180g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368500"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/446829/queijo-grana-lascas-gran-formaggio-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 1,
+      "data_coleta": "2025-06-20T23:00:40.368505"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/29992/manteiga-extra-com-sal-president-gastronomique-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869152"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/1616726/queijo-tipo-brie-le-grand-130g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869176"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/168014/queijo-parmesao-gran-formaggio-pedaco-180g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869181"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/446829/queijo-grana-lascas-gran-formaggio-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869185"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/1548200/queijo-mussarela-fatiado-sadia-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869189"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/321742/queijo-processado-uht-original-polenguinho-136g-8-unidades",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869193"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/451667/creme-de-queijo-ricota-light-tirolez-pote-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869197"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/449950/tabua-de-queijo-gourmet-350g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869201"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/126328/queijo-gorgonzola-pedaco-vigor-180g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869205"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/458307/queijo-mussarela-fatiado-itambe-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869210"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/321743/queijo-processado-uht-light-polenguinho-136g-8-unidades",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869215"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/472043/queijo-gorgonzola-fracionado-vigor-100g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869219"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/674037/queijo-prato-fatiado-president-300g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869223"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/447640/requeijao-cremoso-light-danone-pote-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869227"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/189013/requeijao-cremoso-light-tirolez-copo-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869230"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/27548/presunto-cozido-perdigao-fatiado-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869234"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/353790/queijo-prato-fatiado-tirolez-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869238"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/60145/queijo-minas-frescal-tirolez-430g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869242"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/190337/requeijao-cremoso-tirolez-copo-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869246"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/240215/queijo-parmesao-la-serenissima-pedaco-350g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869249"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/87555/queijo-gouda-tirolez-pedaco-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869253"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/1626596/queijo-holandes-gouda-com-mostarda-kroon-150g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869257"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/1635789/qj-b--vitalatte-burr",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869261"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/1613122/queijo-percorino-rom-frac-gran-150gr",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869265"
+    },
+    {
+      "url": "https://www.paodeacucar.com/produto/240212/queijo-parmesao-tirolez-pedaco-200g",
+      "categoria": "alimentos_refrigerados",
+      "pagina": 2,
+      "data_coleta": "2025-06-20T23:00:52.869282"
+    }
+  ]
+}
