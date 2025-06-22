@@ -1,4 +1,4 @@
-# 🛒 Pão de Queijo Scraping
+# 🛒 Pão de Açucar Scraping
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
@@ -7,7 +7,7 @@
 
 ## 📝 Descrição
 
-O Pão de Queijo Scraping é um web scraper automatizado desenvolvido para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza técnicas avançadas de web scraping com Selenium para navegar de forma eficiente pelo site e extrair informações detalhadas sobre os produtos.
+O Pão de Açucar Scraping é um web scraper automatizado desenvolvido para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza técnicas avançadas de web scraping com Selenium para navegar de forma eficiente pelo site e extrair informações detalhadas sobre os produtos.
 
 ## 🌟 Funcionalidades Principais
 
@@ -29,7 +29,7 @@ O Pão de Queijo Scraping é um web scraper automatizado desenvolvido para colet
 ## 🏗️ Arquitetura do Projeto
 
 ```
-pao_de_queijo_scraping/
+pao_de_acucar_scraping/
 ├── browser_config.py      # Configurações do navegador e Selenium
 ├── url_collector.py       # Módulo de coleta de URLs
 ├── scraper.py            # Core do scraping de dados
@@ -73,10 +73,10 @@ pip install -r requirements.txt
 
 ```bash
 # Construir a imagem
-docker build -t pao-de-queijo-scraper .
+docker build -t pao-de-acucar-scraper .
 
 # Executar o container
-docker run -v $(pwd)/data:/app/data pao-de-queijo-scraper
+docker run -v $(pwd)/data:/app/data pao-de-acucar-scraper
 ```
 
 ## 🚀 Uso
