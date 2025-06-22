@@ -1,4 +1,101 @@
-URL,Nome,Valor energético,Carboidratos,Proteínas,Gorduras totais,Gorduras saturadas,Fibra alimentar,Sódio,Açúcares
-https://www.paodeacucar.com/produto/495095/espumante-italiano-mionetinto-proscecco-750ml,Espumante Italiano MioneTinto Proscecco 750ml,,,,,,,,
-https://www.paodeacucar.com/produto/460707/aveia-em-flocos-finos-quaker-caixa-450g-embalagem-economica,Aveia em Flocos Finos Quaker Caixa 450g Embalagem Econômica,102 kcal,17 g,4.8 g,1.8 g,0.4 g,3 g,0 mg,0 g
-https://www.paodeacucar.com/produto/174187/uramaki-de-salmao-8-pecas-(aprox--196g),Uramaki De Salmão 8 Peças (Aprox. 196g),,,,,,,,
+acucares,calorias,carboidratos,fibras,gorduras,gorduras_saturadas,nome,porcao,proteinas,sodio,url
+0,139,22,2.5,4.5,0.3,Batata Congelada Extra Crocante Airfryer McCain 600g,85,1.9,153,https://www.paodeacucar.com/produto/1419558/batata-congelada-extra-crocante-airfryer-mccain-600g
+0,95,17,2.2,2.1,1,Batata Congelada Tradicional McCain 1.5kg,85,2,44,https://www.paodeacucar.com/produto/1467193/batata-congelada-tradicional-mccain-1-5kg
+0,144,17,0,7,2.4,Pão de Queijo Congelado Tradicional Forno de Minas Pacote 400g,50,3.3,287,https://www.paodeacucar.com/produto/48266/pao-de-queijo-congelado-tradicional-forno-de-minas-pacote-400g
+0,143,17,0,6.9,2.3,Pão de Queijo Congelado Coquetel Forno de Minas Pacote 400g,50,3.3,287,https://www.paodeacucar.com/produto/49915/pao-de-queijo-congelado-coquetel-forno-de-minas-pacote-400g
+0,110,0,0,0,0,"Sorvete Napolitano Flocos Tradicional Nestlé Pote 1,5l",60,0,0,"https://www.paodeacucar.com/produto/412052/sorvete-napolitano-flocos-tradicional-nestle-pote-1,5l"
+0,0,0,0,0,0,Pão de Queijo Tradicional QUALITÁ Pacote 1kg,0,0,0,https://www.paodeacucar.com/produto/284448/pao-de-queijo-tradicional-qualita-pacote-1kg
+13,103,15,0,4.4,2.2,"Sorvete Creme Tradicional Nestlé Pote 1,5l",60,1.1,23,"https://www.paodeacucar.com/produto/345807/sorvete-creme-tradicional-nestle-pote-1,5l"
+0,157,19,0,7.3,1.9,Waffle Congelado Forno de Minas Pacote 280g 8 Unidades,50,3.7,255,https://www.paodeacucar.com/produto/1441725/waffle-congelado-forno-de-minas-pacote-280g-8-unidades
+0,56,0,0,0,0,Brócolis Congelados Higienizado Taeq Pacote 1kg,130,0,0,https://www.paodeacucar.com/produto/697120/brocolis-congelados-higienizado-taeq-pacote-1kg
+0,389,36,3,16.5,7.1,Lasanha Bolonhesa Sadia Pacote 600g,300,24,766.5,https://www.paodeacucar.com/produto/344410/lasanha-bolonhesa-sadia-pacote-600g
+10,110,16,0.8,4.4,2.4,"Sorvete Chocolate Tradicional Nestlé Pote 1,5l",60,1.1,65,"https://www.paodeacucar.com/produto/622051/sorvete-chocolate-tradicional-nestle-pote-1,5l"
+0,164,16,0,10,6.1,Sorvete Morango Häagen-Dazs Pote 473ml,60,2.6,52,https://www.paodeacucar.com/produto/165960/sorvete-morango-haagen-dazs-pote-473ml
+0,0,0,0,0,0,Morango Congelado Inteiro Prático Pouch 400g,0,0,0,https://www.paodeacucar.com/produto/1618764/morango-congelado-inteiro-pratico-pouch-400g
+2.7,247,25,2.4,11,4.4,Pizza Calabresa Sadia Caixa 460g,100,12,451,https://www.paodeacucar.com/produto/51967/pizza-calabresa-sadia-caixa-460g
+14,233,16,0.6,18,12,Mini Sorvete Baunilha Cobertura Chocolate Kibon Eski-bon Caixa 92g,60,2.3,29,https://www.paodeacucar.com/produto/28056/mini-sorvete-baunilha-cobertura-chocolate-kibon-eski-bon-caixa-92g
+0,0,0,0,0,0,Sorvete Baunilha Cobertura Biscoitos Triturados de Chocolate com e sem Recheio Oreo Mini Bites Pote 72g,0,0,0,https://www.paodeacucar.com/produto/1628023/sorvete-baunilha-cobertura-biscoitos-triturados-de-chocolate-com-e-sem-recheio-oreo-mini-bites-pote-72g
+0,0,0,0,0,0,Framboesas Franui Chocolate Amargo 150g,0,0,0,https://www.paodeacucar.com/produto/1615668/framboesas-franui-chocolate-amargo-150g
+1,150,17,0,7.3,2.7,Pão de Queijo Congelado Forno de Minas Pacote 820g,50,4.1,289,https://www.paodeacucar.com/produto/1600558/pao-de-queijo-congelado-forno-de-minas-pacote-820g
+0,0,0,0,0,0,"Batata Pré-Frita Palito Congelada Qualitá Pacote 1,5kg",0,0,0,"https://www.paodeacucar.com/produto/1625374/batata-pre-frita-palito-congelada-qualita-pacote-1,5kg"
+0,0,0,0,0,0,Sorvete Caramelo Salgado Bacio di Latte Pote 490ml,0,0,0,https://www.paodeacucar.com/produto/1630387/sorvete-caramelo-salgado-bacio-di-latte-pote-490ml
+0,56,0,0,0,0,Brócolis Congelados Higienizado Taeq Pacote 300g,130,0,0,https://www.paodeacucar.com/produto/677491/brocolis-congelados-higienizado-taeq-pacote-300g
+0,159,16,0,9.4,6.1,Sorvete Doce de Leite HÄAGEN DAZS Pote 473ml,60,2.7,50,https://www.paodeacucar.com/produto/21401/sorvete-doce-de-leite-haagen-dazs-pote-473ml
+0,0,0,0,0,0,Framboesa Franui Pink Coberta Choc Branco e Framboesa 150g,0,0,0,https://www.paodeacucar.com/produto/1630159/framboesa-franui-pink-coberta-choc-branco-e-framboesa-150g
+38,152,13,0,0.8,6.4,Sorvete de Baunilha e Cookies HÄAGEN DAZS Pote 473ml,60,2.6,41,https://www.paodeacucar.com/produto/23832/sorvete-de-baunilha-e-cookies-haagen-dazs-pote-473ml
+0,0,0,0,0,0,Sorvete Ouro Branco Lacta Pote 485ml,0,0,0,https://www.paodeacucar.com/produto/1627995/sorvete-ouro-branco-lacta-pote-485ml
+0,159,16,0,9.4,6.1,Sorvete Doce de Leite HÄAGEN DAZS Pote 473ml,60,2.7,50,https://www.paodeacucar.com/produto/21401/sorvete-doce-de-leite-haagen-dazs-pote-473ml
+0,0,0,0,0,0,Framboesa Franui Pink Coberta Choc Branco e Framboesa 150g,0,0,0,https://www.paodeacucar.com/produto/1630159/framboesa-franui-pink-coberta-choc-branco-e-framboesa-150g
+38,152,13,0,0.8,6.4,Sorvete de Baunilha e Cookies HÄAGEN DAZS Pote 473ml,60,2.6,41,https://www.paodeacucar.com/produto/23832/sorvete-de-baunilha-e-cookies-haagen-dazs-pote-473ml
+0,0,0,0,0,0,Sorvete Ouro Branco Lacta Pote 485ml,0,0,0,https://www.paodeacucar.com/produto/1627995/sorvete-ouro-branco-lacta-pote-485ml
+0,0,0,0,0,0,Mini Sorvete Doce de Leite Cobertura Chocolate Kibon Caixa 92g,0,0,0,https://www.paodeacucar.com/produto/1616719/mini-sorvete-doce-de-leite-cobertura-chocolate-kibon-caixa-92g
+0,0,0,0,0,0,Sorvete Sonho de Valsa Lacta Pote 900ml,0,0,0,https://www.paodeacucar.com/produto/1627998/sorvete-sonho-de-valsa-lacta-pote-900ml
+0,162,14,1.3,10.4,5.6,Sorvete Chocolate com Amêndoas La Basque Premium Ice Cream Pote 500ml,60,3.1,36,https://www.paodeacucar.com/produto/426133/sorvete-chocolate-com-amendoas-la-basque-premium-ice-cream-pote-500ml
+0,148,12,0,0.5,6.2,Sorvete de Baunilha HÄAGEN DAZS Pote 473ml,60,2.6,43,https://www.paodeacucar.com/produto/107614/sorvete-de-baunilha-haagen-dazs-pote-473ml
+0.8,204,16,0,7,1.8,Empanado de Frango Peito em Pedaços Tempurá Sadia Pacote 300g,130,20,633,https://www.paodeacucar.com/produto/278140/empanado-de-frango-peito-em-pedacos-tempura-sadia-pacote-300g
+16,160,18,0.7,0.3,5.5,Sorvete Doce de Leite e Chocolate Recheio Doce de Leite Ben & Jerry's Core Pote 458ml,60,2.5,39,https://www.paodeacucar.com/produto/481177/sorvete-doce-de-leite-e-chocolate-recheio-doce-de-leite-ben---jerrys-core-pote-458ml
+0,432.5,42,2,19,11,Lasanha Bolonhesa Sadia Pacote 350g,350,23,1092,https://www.paodeacucar.com/produto/87129/lasanha-bolonhesa-sadia-pacote-350g
+0,149,16,0,7.5,2.9,Pão de Queijo Congelado Forno de Minas Pacote 400g,50,4.3,286,https://www.paodeacucar.com/produto/472893/pao-de-queijo-congelado-forno-de-minas-pacote-400g
+11,115,17,0,4.9,2.7,"Sorvete Flocos Kibon Cremosíssimo Pote 1,5l",60,1.1,29,"https://www.paodeacucar.com/produto/347351/sorvete-flocos-kibon-cremosissimo-pote-1,5l"
+16,148,17,1.2,0.2,4.8,Sorvete de Chocolate Fudge Brownie BEN&JERRYS Pote 458ml,60,2.6,48,https://www.paodeacucar.com/produto/314481/sorvete-de-chocolate-fudge-brownie-ben-jerrys-pote-458ml
+0,0,0,0,0,0,Crepe Congelado Francês Recheio Cookies com Chocolate Branco Èze Crêperie Caixa 200g,0,0,0,https://www.paodeacucar.com/produto/1630193/crepe-congelado-frances-recheio-cookies-com-chocolate-branco-eze-creperie-caixa-200g
+13,97,15,0,3.4,1.8,"Sorvete Napolitano Kibon Cremosíssimo Pote 1,5l",60,1.4,44,"https://www.paodeacucar.com/produto/395876/sorvete-napolitano-kibon-cremosissimo-pote-1,5l"
+5.5,90,6.6,0.3,0.1,3.4,Bombom de Sorvete Pistacchio Bacio di Latte Casa Pote 144g,25,1.5,29,https://www.paodeacucar.com/produto/1624642/bombom-de-sorvete-pistacchio-bacio-di-latte-casa-pote-144g
+0,0,0,0,0,0,Mini Sorvete Baunilha Cobertura Chocolate Kibon Eski-bon Pote 184g,0,0,0,https://www.paodeacucar.com/produto/1630424/mini-sorvete-baunilha-cobertura-chocolate-kibon-eski-bon-pote-184g
+0,111,15,0.8,4.9,2.3,"Sorvete Chocolate Qualitá Pote 1,5l",60,1.9,32,"https://www.paodeacucar.com/produto/381039/sorvete-chocolate-qualita-pote-1,5l"
+27,328,30,1.4,22,14,"Mini Sorvete Original Cobertura Chocolate Kibon Chicabon Caixa 106,5g",92,2.8,56,"https://www.paodeacucar.com/produto/1616720/mini-sorvete-original-cobertura-chocolate-kibon-chicabon-caixa-106,5g"
+5.4,81,6.1,0.5,0.1,3.6,Bombom de Sorvete Cioccolato Belga Bacio di Latte Casa Pote 144g,25,1.2,18,https://www.paodeacucar.com/produto/1624643/bombom-de-sorvete-cioccolato-belga-bacio-di-latte-casa-pote-144g
+13,124,18,0,5.3,3,"Sorvete Napolitano Nestlé Especialidades Pote 1,5l",60,0.9,37,"https://www.paodeacucar.com/produto/315926/sorvete-napolitano-nestle-especialidades-pote-1,5l"
+0,109,11,0,6.7,3.4,Massa Folhada Laminada Congelada Arosa Caixa 300g,30,1.5,104,https://www.paodeacucar.com/produto/1590721/massa-folhada-laminada-congelada-arosa-caixa-300g
+0,187,20.8,1.4,7.9,2.9,Pizza Lombo com Requeijão e Mussarela Sadia Caixa 460g,100,8.2,462,https://www.paodeacucar.com/produto/50064/pizza-lombo-com-requeijao-e-mussarela-sadia-caixa-460g
+2.4,215,33,0.2,6.5,3.7,Dadinho de Tapioca Harus 300g,100,6.1,251,https://www.paodeacucar.com/produto/622038/dadinho-de-tapioca-harus-300g
+0,27,0.7,0,2.6,1.5,Creme de Leite Nestlé 200g,15,0,10,https://www.paodeacucar.com/produto/43804/creme-de-leite-nestle-200g
+0,65,11,0,1.6,1,Leite Condensado Integral Moça Lata 395g,20,1.4,22,https://www.paodeacucar.com/produto/50670/leite-condensado-integral-moca-lata-395g
+7.3,79,7.3,0,5,2.8,Bombom NESTLÉ Especialidades Caixa 251g,14,1.2,17,https://www.paodeacucar.com/produto/475544/bombom-nestle-especialidades-caixa-251g
+0,65,11,0,1.6,1.0,Leite Condensado Semidesnatado MOÇA Caixinha 395g,20,1.4,20,https://www.paodeacucar.com/produto/16777/leite-condensado-semidesnatado-moca-caixinha-395g
+0,108,12,0,d,0,Creme de Avelã com Cacau Nutella Pote 350g,20,0,9,https://www.paodeacucar.com/produto/41146/creme-de-avela-com-cacau-nutella-pote-350g
+0,0,0,0,0,0,"Bis Original Ao Leite (Wafer Recheado e com Cobertura Sabor Chocolate ao Leite) 100,8g",0,0,0,"https://www.paodeacucar.com/produto/1602899/bis-original-ao-leite-(wafer-recheado-e-com-cobertura-sabor-chocolate-ao-leite)-100,8g"
+0,26,0.6,0,2.6,1.6,Creme De Leite Piracanjuba 200g,15,0,12,https://www.paodeacucar.com/produto/143696/creme-de-leite-piracanjuba-200g
+20,220,24,0.9,12,7,"Chocolate KITKAT 4 Fingers ao Leite 41,5g",0,3.3,38,"https://www.paodeacucar.com/produto/180880/chocolate-kitkat-4-fingers-ao-leite-41,5g"
+0,38,0,0,3,2.7,Leite de Coco SOCÔCO Vidro 200ml,15,0,0,https://www.paodeacucar.com/produto/64150/leite-de-coco-sococo-vidro-200ml
+7.5,137,9.8,3.6,9,5.4,Chocolate Lacta Intense Amargo 70% Cacau Original 85g,25,2.5,6.4,https://www.paodeacucar.com/produto/1614984/chocolate-lacta-intense-amargo-70-cacau-original-85g
+0,550,0,0,0,0,Chocolate ao Leite Extracremoso Hershey's Pacote 82g,25,0,0,https://www.paodeacucar.com/produto/1568238/chocolate-ao-leite-extracremoso-hersheys-pacote-82g
+0,496,0,0,0,0,Chocolate Meio Amargo 40% Cacau Hersheys Pacote 82g,25,0,0,https://www.paodeacucar.com/produto/1568237/chocolate-meio-amargo-40-cacau-hersheys-pacote-82g
+13,136,13,0.6,8.3,5,Chocolate SUFLAIR ao Leite 80g,25,2.1,21,https://www.paodeacucar.com/produto/581611/chocolate-suflair-ao-leite-80g
+0,542,0,0,0,0,Chocolate ao Leite com Ovomaltine Hersheys Pacote 77g,25,0,0,https://www.paodeacucar.com/produto/1568240/chocolate-ao-leite-com-ovomaltine-hersheys-pacote-77g
+0,0,0,0,0,0,"Bis Branco (Wafer Recheado e com Cobertura sabor Chocolate Branco) 100,8g",0,0,0,"https://www.paodeacucar.com/produto/1602893/bis-branco-(wafer-recheado-e-com-cobertura-sabor-chocolate-branco)-100,8g"
+0,0,0,0,0,0,Fermento em Pó ROYAL Pote 100g,0,0,0,https://www.paodeacucar.com/produto/144659/fermento-em-po-royal-pote-100g
+15,146,20,0.5,0.1,3.7,Twix Caramelo 80g,30,1.2,55,https://www.paodeacucar.com/produto/290642/twix-caramelo-80g
+13,132,14,0.8,8.1,4.8,Chocolate Lacta ao Leite 80g,25,1.7,24,https://www.paodeacucar.com/produto/1529610/chocolate-lacta-ao-leite-80g
+0,156,11,0.5,0.1,8.8,Caixa de Bombons Chocolate Lindt Lindor Ao Leite 200g,25,1.2,15,https://www.paodeacucar.com/produto/110223/caixa-de-bombons-chocolate-lindt-lindor-ao-leite-200g
+13,136,13,0.7,8.4,5,Chocolate NESTLÉ CLASSIC ao Leite 150g,25,2,26,https://www.paodeacucar.com/produto/1340703/chocolate-nestle-classic-ao-leite-150g
+0,156,10,1,0.1,9,Caixa de Bombons Chocolate Lindt Lindor Sortidos 200g,25,1,4,https://www.paodeacucar.com/produto/13363/caixa-de-bombons-chocolate-lindt-lindor-sortidos-200g
+12,134,14,0.6,7.8,4.6,Chocolate CRUNCH Tablete 80g,25,2,32,https://www.paodeacucar.com/produto/1462261/chocolate-crunch-tablete-80g
+9.2,101,11,0.8,5,1,Paçoquinha de Amendoim Tradicional Brasileira YOKI Pote 352g,20,3,22,https://www.paodeacucar.com/produto/129607/pacoquinha-de-amendoim-tradicional-brasileira-yoki-pote-352g
+0,0,0,0,0,0,Chocolate ao Leite Lacta Pacote 145g Tamanho Família,0,0,0,https://www.paodeacucar.com/produto/1626676/chocolate-ao-leite-lacta-pacote-145g-tamanho-familia
+14,136,14,0.6,8,4.8,Chocolate Lindt Classic Barra Ao Leite 90g,25,1.8,30,https://www.paodeacucar.com/produto/1599561/chocolate-lindt-classic-barra-ao-leite-90g
+12,134,14,0.6,7.8,4.6,Chocolate CRUNCH Tablete 80g,25,2,32,https://www.paodeacucar.com/produto/1462261/chocolate-crunch-tablete-80g
+9.2,101,11,0.8,5,1,Paçoquinha de Amendoim Tradicional Brasileira YOKI Pote 352g,20,3,22,https://www.paodeacucar.com/produto/129607/pacoquinha-de-amendoim-tradicional-brasileira-yoki-pote-352g
+0,0,0,0,0,0,Chocolate ao Leite Lacta Pacote 145g Tamanho Família,0,0,0,https://www.paodeacucar.com/produto/1626676/chocolate-ao-leite-lacta-pacote-145g-tamanho-familia
+14,136,14,0.6,8,4.8,Chocolate Lindt Classic Barra Ao Leite 90g,25,1.8,30,https://www.paodeacucar.com/produto/1599561/chocolate-lindt-classic-barra-ao-leite-90g
+25,228,29,1.4,12,6.8,Bis Xtra Original  Ao Leite (Wafer recheado e com cobertura de chocolate ao leite) 45g,45,1.9,71,https://www.paodeacucar.com/produto/658759/bis-xtra-original--ao-leite-(wafer-recheado-e-com-cobertura-de-chocolate-ao-leite)-45g
+12,129,13,2,7.9,4,Chocolate Meio Amargo com Amêndoas Garoto Talento Pacote 85g,25,2,0,https://www.paodeacucar.com/produto/1070275/chocolate-meio-amargo-com-amendoas-garoto-talento-pacote-85g
+9.2,132,11,3,8.3,5,Chocolate Special Dark Tradicional 60% Hersheys - 85g,25,1.9,0,https://www.paodeacucar.com/produto/466057/chocolate-special-dark-tradicional-60-hersheys---85g
+10,65,11,3.5,1.3,0.7,Chocolate em Pó NESTLÉ Dois Frades 200g,20,2.3,0,https://www.paodeacucar.com/produto/144194/chocolate-em-po-nestle-dois-frades-200g
+16,154,20,0,7.6,3.4,Wafer recheado de Chocolate Lacta Amandita 200g,30,1.2,21,https://www.paodeacucar.com/produto/69833/wafer-recheado-de-chocolate-lacta-amandita-200g
+0,70,17,0,0,0,Amido de Milho Maizena  Tradicional 200g,20,0,0,https://www.paodeacucar.com/produto/100181/amido-de-milho-maizena--tradicional-200g
+0,110,10,0,7.0,3.2,Bombom Wafer Kinder Bueno White Pacote 39g 2 Unidades,0,1.7,25,https://www.paodeacucar.com/produto/175499/bombom-wafer-kinder-bueno-white-pacote-39g-2-unidades
+15,155,19,0,8.3,4.4,"Bis Oreo (Wafer Recheado e com Cobertura sabor chocolate Branco) 100,8g",30,1.3,104,"https://www.paodeacucar.com/produto/344328/bis-oreo-(wafer-recheado-e-com-cobertura-sabor-chocolate-branco)-100,8g"
+14,546,17,0,6.9,4.1,Chocolate Branco Cookies 'n' Creme Hershey's Pacote 77g,25,1.1,44,https://www.paodeacucar.com/produto/1568242/chocolate-branco-cookies-n-creme-hersheys-pacote-77g
+0,0,0,0,0,0,Chocolate ao Leite Surpresa Pacote 20g,0,0,0,https://www.paodeacucar.com/produto/1631225/chocolate-ao-leite-surpresa-pacote-20g
+13,137,13,0.7,8.4,5,Chocolate ao Leite NESTLÉ CLASSIC Tablete 80g,25,2,26,https://www.paodeacucar.com/produto/1462253/chocolate-ao-leite-nestle-classic-tablete-80g
+0,148,3.5,3.5,14,7.5,Chocolate Francês Amargo 70% Cacau Lindt Excellence 100g,25,2.4,3.3,https://www.paodeacucar.com/produto/73198/chocolate-frances-amargo-70-cacau-lindt-excellence-100g
+12,137,14,0.5,0.1,4.5,Chocotrio NESTLÉ Cookies e Cream 90g,25,2.1,33,https://www.paodeacucar.com/produto/1575887/chocotrio-nestle-cookies-e-cream-90g
+22,227,26,2.4,13,7.7,Bis Xtra Black (Wafer recheado e com cobertura sabor chocolate meio amargo) 45g,45,2.3,87,https://www.paodeacucar.com/produto/670161/bis-xtra-black-(wafer-recheado-e-com-cobertura-sabor-chocolate-meio-amargo)-45g
+20,223,24,0,12,7.1,"Chocolate KITKAT 4 Fingers White 41,5g",0,3.2,42,"https://www.paodeacucar.com/produto/391834/chocolate-kitkat-4-fingers-white-41,5g"
+5.7,146,7.9,3.3,11,6.7,Chocolate 80% Cacau Tradicional Hersheys Special Dark Pacote 85g,25,2.1,3.8,https://www.paodeacucar.com/produto/1550458/chocolate-80-cacau-tradicional-hersheys-special-dark-pacote-85g
+0,0,0,0,0,0,Chocolate Ao Leite Milka Daim 100g,0,0,0,https://www.paodeacucar.com/produto/459286/chocolate-ao-leite-milka-daim-100g
+0,0,0,0,d,0,Nutella B-Ready Wafer Recheado 22g,0,0,0,https://www.paodeacucar.com/produto/470380/nutella-b-ready-wafer-recheado-22g
+7.3,141,9.3,2.9,10,6.2,Barra de Chocolate Hersheys Special Dark Tradicional 73% Com 85g,25,1.9,3.8,https://www.paodeacucar.com/produto/568602/barra-de-chocolate-hersheys-special-dark-tradicional-73-com-85g
+11,109,11,0.7,6.5,3.9,"Caixa De Variedades Lacta Favoritos 250,6g",20,1.4,20,"https://www.paodeacucar.com/produto/433152/caixa-de-variedades-lacta-favoritos-250,6g"
+15,132,15,0,7.3,4.4,Chocolate ao Leite Nougat de Mel e Amêndoas Toblerone Caixa 100g,25,1.4,12,https://www.paodeacucar.com/produto/47053/chocolate-ao-leite-nougat-de-mel-e-amendoas-toblerone-caixa-100g
