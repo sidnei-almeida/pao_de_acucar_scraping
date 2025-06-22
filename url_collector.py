@@ -54,8 +54,8 @@ def scroll_ate_o_fim(driver, max_scrolls=None):
                 return False
         else:
             num_tentativas_mesma_altura = 0
-            last_height = new_height
-            num_scrolls += 1
+        last_height = new_height
+        num_scrolls += 1
             logging.debug(f"Rolando a página... (scroll {num_scrolls})")
 
 def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
@@ -152,16 +152,16 @@ def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
                     urls_ja_coletadas.add(url)
                     produtos_novos = True
                     logger.debug(f"Produto encontrado: {nome} - {url}")
-                    
-                    # Se atingiu o número máximo de URLs, para
+                
+                # Se atingiu o número máximo de URLs, para
                     if max_urls and len(produtos_info) >= max_urls:
                         logger.info(f"Número máximo de URLs atingido ({max_urls})")
-                        break
+                    break
                         
-            except Exception as e:
+        except Exception as e:
                 logger.error(f"Erro ao extrair informações do produto: {str(e)}")
-                continue
-        
+            continue
+    
         logger.info(f"Total de produtos encontrados nesta página: {len(produtos_info)}")
         
     except Exception as e:

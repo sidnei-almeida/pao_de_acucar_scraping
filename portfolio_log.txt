@@ -1,0 +1,113 @@
+==================================================
+PROJETO: Web Scraper de Dados Nutricionais - Pão de Açúcar
+==================================================
+
+PERÍODO DE DESENVOLVIMENTO
+-------------------------
+Data de Início: Março/2024
+Status: Em Desenvolvimento
+Tipo: Projeto Pessoal
+
+VISÃO GERAL
+-----------
+Desenvolvimento de um web scraper automatizado para coletar dados nutricionais de produtos do supermercado Pão de Açúcar. O projeto demonstra habilidades avançadas em automação web, manipulação de dados e desenvolvimento de software em Python.
+
+TECNOLOGIAS UTILIZADAS
+---------------------
+- Python 3.8+
+- Selenium WebDriver
+- Pandas
+- Logging
+- Docker
+- Git/GitHub
+
+HABILIDADES DEMONSTRADAS
+-----------------------
+1. Web Scraping Avançado
+   - Automação de navegação web
+   - Manipulação de elementos dinâmicos
+   - Tratamento de rate limiting
+   - Gestão de sessões do navegador
+
+2. Engenharia de Software
+   - Arquitetura modular
+   - Tratamento de erros
+   - Logging e monitoramento
+   - Versionamento de código
+
+3. Manipulação de Dados
+   - Processamento de dados estruturados
+   - Exportação em múltiplos formatos (CSV, JSON)
+   - Limpeza e normalização de dados
+   - Tratamento de dados faltantes
+
+4. Boas Práticas
+   - Documentação detalhada
+   - Código limpo e bem estruturado
+   - Princípios SOLID
+   - Testes automatizados
+
+DESAFIOS SUPERADOS
+-----------------
+1. Implementação de sistema de scrolling dinâmico para carregamento de produtos
+2. Tratamento de diferentes formatos de dados nutricionais
+3. Otimização de performance e gestão de recursos
+4. Desenvolvimento de sistema robusto de logging e recuperação de erros
+
+RESULTADOS ALCANÇADOS
+--------------------
+- Automação completa do processo de coleta de dados
+- Sistema escalável e manutenível
+- Documentação profissional
+- Código fonte aberto e disponível no GitHub
+
+MÉTRICAS DO PROJETO
+------------------
+- Linhas de Código: ~1000
+- Arquivos Python: 6
+- Módulos Principais: 4
+- Tempo de Desenvolvimento: Em andamento
+
+LINKS RELEVANTES
+---------------
+GitHub: https://github.com/seu-usuario/pao_de_queijo_scraping
+Contato: sidnei.almeida1806@gmail.com
+
+FUNCIONALIDADES PRINCIPAIS
+------------------------
+1. Coleta Automatizada
+   - Navegação por categorias
+   - Extração de URLs
+   - Coleta de dados nutricionais
+
+2. Processamento de Dados
+   - Normalização de unidades
+   - Validação de dados
+   - Exportação estruturada
+
+3. Monitoramento
+   - Sistema de logs
+   - Relatórios de erros
+   - Métricas de coleta
+
+DIFERENCIAIS DO PROJETO
+----------------------
+- Solução escalável e robusta
+- Código bem documentado
+- Fácil manutenção e extensão
+- Tratamento adequado de erros
+- Interface de linha de comando intuitiva
+
+APRENDIZADOS E CONCLUSÕES
+------------------------
+O projeto demonstra capacidade de:
+- Desenvolvimento de soluções automatizadas
+- Tratamento de dados em larga escala
+- Implementação de boas práticas de programação
+- Documentação profissional
+- Gestão de projetos de software
+
+==================================================
+TAGS PARA PORTFÓLIO
+==================================================
+#WebScraping #Python #Selenium #DataEngineering #Automation #WebAutomation #DataCollection #SoftwareEngineering #OpenSource #DataProcessing #PythonDevelopment #WebCrawling #DataScience #Programming #TechPortfolio #SoftwareDevelopment #CodeQuality #Documentation #GitHub #DataAnalysis 
