@@ -321,6 +321,31 @@ select.search-input option {
 .btn i {
     font-size: 1rem;
 }
+
+/* Botão de Download */
+.download-button {
+    background: var(--pink);
+    color: var(--white);
+    padding: 1.2rem 2.4rem;
+    border-radius: 8px;
+    border: none;
+    font-size: var(--font-size-small);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+}
+
+.download-button:hover {
+    background: var(--pink-dark);
+    transform: translateY(-2px);
+}
+
+.download-button i {
+    font-size: 1.8rem;
+}
 </style>
 {% endblock %}
 
@@ -330,6 +355,12 @@ select.search-input option {
         <h2 class="consulta-title">Consultar Dados</h2>
         <p class="consulta-description">Pesquise e visualize os dados nutricionais coletados</p>
     </div>
+
+    <!-- Botão de Download -->
+    <button class="download-button" onclick="downloadExcel()">
+        <i class="fas fa-file-excel"></i>
+        Baixar Tabela Excel
+    </button>
 
     <div class="search-form">
         <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nome do produto...">
@@ -611,5 +642,25 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarCategorias();
     carregarDados();
 });
+
+async function downloadExcel() {
+    try {
+        const response = await fetch('/download-excel');
+        if (!response.ok) throw new Error('Erro ao baixar arquivo');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dados_nutricionais.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+    } catch (error) {
+        console.error('Erro:', error);
+        alert('Erro ao fazer o download do arquivo');
+    }
+}
 </script>
 {% endblock %} 

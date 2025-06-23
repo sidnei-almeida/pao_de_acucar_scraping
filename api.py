@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 from typing import List, Optional, Dict
 import pandas as pd
@@ -13,6 +13,7 @@ import logging
 import socketio
 import uvicorn
 from dotenv import load_dotenv
+import io
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -470,6 +471,43 @@ async def iniciar_coleta(request: Request):
     except Exception as e:
         logging.error(f"Erro durante a coleta: {str(e)}")
         await emit_log_update(f"Erro durante a coleta: {str(e)}", "error")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/download-excel")
+async def download_excel():
+    """Endpoint para download dos dados em formato Excel"""
+    try:
+        # Lê o arquivo CSV
+        df = pd.read_csv("dados_nutricionais.csv")
+        
+        # Cria um buffer em memória para o Excel
+        output = io.BytesIO()
+        
+        # Salva o DataFrame como Excel no buffer
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, sheet_name='Dados Nutricionais', index=False)
+            
+            # Ajusta largura das colunas
+            worksheet = writer.sheets['Dados Nutricionais']
+            for i, col in enumerate(df.columns):
+                max_length = max(df[col].astype(str).apply(len).max(), len(col)) + 2
+                worksheet.set_column(i, i, max_length)
+        
+        # Prepara o buffer para leitura
+        output.seek(0)
+        
+        # Retorna o arquivo Excel como resposta
+        headers = {
+            'Content-Disposition': 'attachment; filename=dados_nutricionais.xlsx'
+        }
+        return StreamingResponse(
+            output,
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            headers=headers
+        )
+    
+    except Exception as e:
+        logging.error(f"Erro ao gerar arquivo Excel: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Eventos do Socket.IO

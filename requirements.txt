@@ -8,4 +8,5 @@ selenium==4.17.2
 webdriver-manager==4.0.1
 beautifulsoup4==4.12.3
 aiofiles==23.2.1
-python-dotenv==1.0.1 
+python-dotenv==1.0.1
+xlsxwriter==3.1.9 
