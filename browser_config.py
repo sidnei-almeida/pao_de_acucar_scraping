@@ -169,64 +169,37 @@ def configurar_driver():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
-    options.add_argument("--disable-gpu")  # Importante para modo headless
-    options.add_argument("--disable-extensions")  # Desativa extensões
-    options.add_argument("--disable-dev-tools")  # Desativa ferramentas de desenvolvimento
-    options.add_argument("--no-first-run")  # Pula a primeira execução
-    options.add_argument("--no-default-browser-check")  # Não verifica navegador padrão
-    options.add_argument("--disable-blink-features=AutomationControlled")  # Evita detecção de automação
+    options.add_argument("--disable-gpu")
+    options.add_argument("--disable-extensions")
+    options.add_argument("--disable-dev-tools")
+    options.add_argument("--no-first-run")
+    options.add_argument("--no-default-browser-check")
+    options.add_argument("--disable-blink-features=AutomationControlled")
+    options.add_argument("--disable-setuid-sandbox")
+    options.add_argument("--disable-software-rasterizer")
     
-    # Define o caminho do binário se foi encontrado
-    if binary_location:
-        print(f"Usando binário do navegador em: {binary_location}")
+    # Configurações específicas para ambiente de produção (como Render)
+    if os.environ.get('RENDER'):
+        options.binary_location = "/usr/bin/google-chrome-stable"
+    elif binary_location:
         options.binary_location = binary_location
     
     try:
-        # Se for Opera, usa o OperaDriverManager
-        if browser_type == 'opera':
-            print("Configurando Opera WebDriver...")
-            driver_path = OperaDriverManager().install()
-            service = Service(driver_path)
-            driver = webdriver.Chrome(service=service, options=options)
-            print("Driver do Opera configurado com sucesso")
-            return driver
-        
-        # Para Chrome/Chromium
-        print(f"Configurando {'Chrome' if browser_type == ChromeType.GOOGLE else 'Chromium'} WebDriver...")
-        
+        print("Configurando Chrome WebDriver...")
+        service = Service()
+        driver = webdriver.Chrome(service=service, options=options)
+        print("Driver do Chrome configurado com sucesso")
+        return driver
+    except Exception as e:
+        print(f"Erro ao configurar com webdriver-manager: {str(e)}")
         try:
-            # Tenta primeiro com o chromedriver do sistema
+            # Tenta usar o chromedriver do sistema como fallback
             system_driver = '/usr/bin/chromedriver'
             if os.path.exists(system_driver):
-                print(f"Usando chromedriver do sistema em: {system_driver}")
-                service = Service(system_driver)
+                service = Service(executable_path=system_driver)
                 driver = webdriver.Chrome(service=service, options=options)
                 print("Driver configurado com sucesso usando chromedriver do sistema")
                 return driver
         except Exception as e:
-            print(f"Não foi possível usar o chromedriver do sistema: {str(e)}")
-        
-        # Se não funcionar com o chromedriver do sistema, tenta com o webdriver-manager
-        try:
-            driver_path = ChromeDriverManager(chrome_type=browser_type).install()
-            service = Service(driver_path)
-            driver = webdriver.Chrome(service=service, options=options)
-            print("Driver configurado com sucesso usando webdriver-manager")
-            return driver
-        except Exception as e:
-            print(f"Erro ao configurar com webdriver-manager: {str(e)}")
-            
-            # Última tentativa: usar o Chrome como fallback
-            if browser_type != ChromeType.GOOGLE:
-                print("Tentando configurar com Chrome como última opção...")
-                driver_path = ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install()
-                service = Service(driver_path)
-                driver = webdriver.Chrome(service=service, options=options)
-                print("Driver configurado com sucesso usando Chrome")
-                return driver
-            
-            raise e
-        
-    except Exception as e:
-        print(f"Erro fatal ao configurar o driver: {str(e)}")
-        raise Exception(f"Não foi possível configurar o WebDriver. Certifique-se de que o Chrome, Chromium ou Opera esteja instalado. Erro: {str(e)}") 
+            print(f"Erro fatal ao configurar o driver: {str(e)}")
+            raise 

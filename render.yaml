@@ -3,6 +3,13 @@ services:
     name: pao-de-queijo-scraping
     env: python
     buildCommand: |
+      # Instalar dependências do Chrome
+      apt-get update && apt-get install -y wget gnupg2
+      wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+      echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
+      apt-get update
+      apt-get install -y google-chrome-stable
+      # Instalar dependências Python
       python -m pip install --upgrade pip
       pip install -r requirements.txt
     startCommand: uvicorn api:socket_app --host 0.0.0.0 --port $PORT
