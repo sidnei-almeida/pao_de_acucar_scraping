@@ -19,11 +19,13 @@ def scroll_ate_o_fim(driver, max_scrolls=None):
     Rola a página até o fim para carregar todos os produtos.
     Retorna False se não houver mais conteúdo para carregar.
     """
-    last_height = driver.execute_script("return document.body.scrollHeight")
     num_scrolls = 0
-    num_tentativas_mesma_altura = 0
-    max_tentativas_mesma_altura = 5  # Aumentado para 5 tentativas
     produtos_antes = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
+    contagem_mesma_quantidade = 0
+    max_tentativas_mesma_quantidade = 3  # Número máximo de vezes que aceitamos ver a mesma quantidade
+    ultima_quantidade = produtos_antes
+    
+    logger.info(f"Iniciando coleta com {produtos_antes} produtos")
     
     while True:
         # Se atingiu o número máximo de scrolls, para
@@ -33,55 +35,35 @@ def scroll_ate_o_fim(driver, max_scrolls=None):
             
         # Rola até o fim da página
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(3)  # Espera o carregamento
         
-        # Espera o carregamento com tempo maior
-        time.sleep(5)  # Aumentado para 5 segundos
+        # Conta produtos após a rolagem
+        produtos_depois = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
         
-        # Tenta esperar pelo carregamento de novos produtos
-        try:
-            WebDriverWait(driver, 15).until(  # Aumentado para 15 segundos
-                lambda d: len(d.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']")) > produtos_antes
-            )
-            produtos_antes = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
-            num_tentativas_mesma_altura = 0  # Reseta o contador se encontrou novos produtos
-            logger.info(f"Encontrados {produtos_antes} produtos após scroll")
-        except:
-            logger.warning("Timeout esperando novos produtos carregarem")
-        
-        # Calcula a nova altura
-        new_height = driver.execute_script("return document.body.scrollHeight")
-        
-        # Se a altura não mudou, pode ser fim da página ou conteúdo ainda carregando
-        if new_height == last_height:
-            num_tentativas_mesma_altura += 1
-            if num_tentativas_mesma_altura >= max_tentativas_mesma_altura:
-                # Tenta mais um scroll pequeno para garantir
-                driver.execute_script("window.scrollBy(0, 500);")  # Aumentado para 500px
-                time.sleep(3)  # Aumentado para 3 segundos
-                final_height = driver.execute_script("return document.body.scrollHeight")
-                if final_height == new_height:
-                    logger.info("Fim da página detectado - altura não mudou após várias tentativas")
-                    return False
-            else:
-                # Tenta rolar um pouco mais para cima e depois para baixo
-                driver.execute_script("window.scrollBy(0, -300);")  # Rola para cima
-                time.sleep(1)
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")  # Rola para baixo
-                time.sleep(2)
-                num_tentativas_mesma_altura = 0  # Reseta o contador para dar mais chances
+        # Se a quantidade de produtos não mudou
+        if produtos_depois == ultima_quantidade:
+            contagem_mesma_quantidade += 1
+            logger.info(f"Quantidade de produtos não mudou: {produtos_depois} (tentativa {contagem_mesma_quantidade} de {max_tentativas_mesma_quantidade})")
+            
+            # Se atingiu o máximo de tentativas sem mudança, para
+            if contagem_mesma_quantidade >= max_tentativas_mesma_quantidade:
+                logger.info(f"Fim da página detectado - quantidade de produtos não mudou após {max_tentativas_mesma_quantidade} tentativas")
+                return False
         else:
-            num_tentativas_mesma_altura = 0
+            # Se encontrou novos produtos, reseta o contador
+            logger.info(f"Novos produtos encontrados: {produtos_depois - ultima_quantidade} (total: {produtos_depois})")
+            contagem_mesma_quantidade = 0
+            ultima_quantidade = produtos_depois
         
-        last_height = new_height
         num_scrolls += 1
-        logger.info(f"Rolando a página... (scroll {num_scrolls} - {produtos_antes} produtos encontrados)")
+        logger.info(f"Rolagem {num_scrolls} - Total de produtos: {produtos_depois}")
         
-        # Verifica se há um botão "Carregar mais" e clica nele
+        # Tenta clicar no botão "Carregar mais" se existir
         try:
             botao_carregar = driver.find_element(By.CSS_SELECTOR, "button[class*='load-more']")
             if botao_carregar.is_displayed():
                 botao_carregar.click()
-                time.sleep(3)  # Espera o carregamento após clicar
+                time.sleep(3)
                 logger.info("Clicou no botão 'Carregar mais'")
         except:
             pass
