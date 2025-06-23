@@ -279,9 +279,9 @@ class URLCollector:
         self.modo_teste = modo_teste
         
         # Configurações para o modo de teste
-        self.max_urls_teste = 200  # Limite de URLs por categoria no modo teste
-        self.max_paginas_teste = 10  # Aumentado para garantir encontrar produtos suficientes
-        self.max_scrolls_teste = 20  # Aumentado para carregar mais produtos por página
+        self.max_urls_teste = 20  # Limite de URLs por categoria no modo teste
+        self.max_paginas_teste = 5  # Reduzido pois agora precisamos de menos produtos
+        self.max_scrolls_teste = 10  # Reduzido pois agora precisamos de menos produtos
         
         # Seletores CSS para elementos da página
         self.seletores = {
