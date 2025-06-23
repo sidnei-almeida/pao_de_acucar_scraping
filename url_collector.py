@@ -33,9 +33,17 @@ def scroll_ate_o_fim(driver, max_scrolls=None):
             logger.info("Número máximo de scrolls atingido")
             return True
             
-        # Rola até o fim da página
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(3)  # Espera o carregamento
+        # Rola 1/3 da altura da página
+        altura_viewport = driver.execute_script("return window.innerHeight")
+        altura_total = driver.execute_script("return document.body.scrollHeight")
+        posicao_atual = driver.execute_script("return window.pageYOffset")
+        
+        # Calcula a próxima posição de rolagem (1/3 da altura total)
+        proxima_posicao = min(posicao_atual + (altura_total / 3), altura_total - altura_viewport)
+        
+        # Executa a rolagem
+        driver.execute_script(f"window.scrollTo(0, {proxima_posicao});")
+        time.sleep(5)  # Aumenta o tempo de espera para 5 segundos
         
         # Conta produtos após a rolagem
         produtos_depois = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
@@ -63,7 +71,7 @@ def scroll_ate_o_fim(driver, max_scrolls=None):
             botao_carregar = driver.find_element(By.CSS_SELECTOR, "button[class*='load-more']")
             if botao_carregar.is_displayed():
                 botao_carregar.click()
-                time.sleep(3)
+                time.sleep(5)  # Aumenta o tempo de espera após clicar no botão
                 logger.info("Clicou no botão 'Carregar mais'")
         except:
             pass
@@ -97,7 +105,8 @@ def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
             "div[class*='ProductCard']",         # Variação CamelCase
             "div.vtex-product-summary-2-x-container",  # Padrão VTEX
             "div.shelf-product",                 # Padrão antigo
-            "article[data-testid='product-card']"  # Variação com article
+            "article[data-testid='product-card']",  # Variação com article
+            "a[href*='/produto/']"  # Links diretos de produtos
         ]
         
         cards = None
@@ -109,9 +118,8 @@ def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
                 break
         
         if not cards:
-            # Se não encontrou com os seletores anteriores, tenta encontrar qualquer link de produto
-            logger.info("Tentando encontrar links de produtos diretamente...")
-            cards = driver.find_elements(By.CSS_SELECTOR, "a[href*='/produto/']")
+            logger.info("Nenhum produto encontrado com os seletores disponíveis")
+            return [], False
             
         for card in cards:
             try:
@@ -322,34 +330,21 @@ class URLCollector:
             urls_ja_coletadas = set()
             
             # Rola a página até o fim ou até atingir o limite
-            while True:
-                # Rola a página para carregar mais produtos
-                tem_mais_conteudo = scroll_ate_o_fim(driver, max_scrolls)
-                
-                # Extrai URLs da página atual
-                urls_pagina, encontrou_novos = extrair_urls_produtos(
-                    driver,
-                    max_urls=max_urls,
-                    urls_ja_coletadas=urls_ja_coletadas
-                )
-                
-                todas_urls.extend(urls_pagina)
-                
-                # Se está no modo teste e já tem URLs suficientes, para
-                if modo_teste and len(todas_urls) >= 5:  # Número fixo para modo teste
-                    logger.info("Modo teste: limite de 5 URLs atingido")
-                    break
-                    
-                # Se não encontrou produtos novos e não tem mais conteúdo para carregar, chegamos ao fim
-                if not encontrou_novos and not tem_mais_conteudo:
-                    logger.info("Fim da página atingido - não há mais produtos para coletar")
-                    break
-                    
-                # Se não encontrou produtos novos mas ainda tem conteúdo, continua rolando
-                if not encontrou_novos:
-                    logger.info("Nenhum produto novo encontrado, mas ainda há conteúdo para carregar")
-                    continue
-                    
+            tem_mais_conteudo = scroll_ate_o_fim(driver, max_scrolls)
+            
+            # Extrai URLs da página atual
+            urls_pagina, encontrou_novos = extrair_urls_produtos(
+                driver,
+                max_urls=max_urls,
+                urls_ja_coletadas=urls_ja_coletadas
+            )
+            
+            todas_urls.extend(urls_pagina)
+            
+            # Se está no modo teste e já tem URLs suficientes, para
+            if modo_teste and len(todas_urls) >= 5:  # Número fixo para modo teste
+                logger.info("Modo teste: limite de 5 URLs atingido")
+            
             logger.info(f"Total de URLs coletadas: {len(todas_urls)}")
             return todas_urls
             

@@ -522,6 +522,10 @@ async def realizar_coleta(modo: str, categorias: List[str]):
         
         await emit_log_update(f"Iniciando coleta para {len(categorias_selecionadas)} categorias")
         
+        # Lista para armazenar todas as URLs coletadas
+        todas_urls = []
+        
+        # Primeiro coleta todas as URLs de todas as categorias
         for categoria in categorias_selecionadas:
             if not coleta_ativa:
                 await emit_log_update("Coleta interrompida", "warning")
@@ -530,7 +534,7 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                 break
                 
             try:
-                await emit_log_update(f"Processando categoria: {categoria['nome']}")
+                await emit_log_update(f"Coletando URLs da categoria: {categoria['nome']}")
                 
                 # Coleta URLs da categoria
                 collector = URLCollector()
@@ -542,31 +546,36 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                     break
                 
                 await emit_log_update(f"Encontrados {len(urls)} produtos em {categoria['nome']}")
-                
-                # Processa cada URL
-                for i, url_info in enumerate(urls, 1):
-                    if not coleta_ativa:
-                        if scraper_instance:
-                            scraper_instance.cancelar()
-                        break
-                        
-                    try:
-                        await emit_log_update(f"Processando produto {i}/{len(urls)} de {categoria['nome']}")
-                        # Extrai a URL do dicionário
-                        url = url_info['url']
-                        resultado = scraper_instance.extrair_dados_nutricionais(url)
-                        
-                        if resultado:
-                            await emit_log_update(f"✅ Produto {i}/{len(urls)} coletado com sucesso", "success")
-                        else:
-                            await emit_log_update(f"❌ Falha ao coletar produto {i}/{len(urls)}", "error")
-                        
-                    except Exception as e:
-                        await emit_log_update(f"Erro ao processar produto: {str(e)}", "error")
-                        continue
+                todas_urls.extend(urls)
                 
             except Exception as e:
-                await emit_log_update(f"Erro ao processar categoria {categoria['nome']}: {str(e)}", "error")
+                await emit_log_update(f"Erro ao coletar URLs da categoria {categoria['nome']}: {str(e)}", "error")
+                continue
+        
+        # Depois coleta os dados nutricionais de todas as URLs
+        total_urls = len(todas_urls)
+        await emit_log_update(f"Total de URLs coletadas de todas as categorias: {total_urls}")
+        
+        # Processa cada URL
+        for i, url_info in enumerate(todas_urls, 1):
+            if not coleta_ativa:
+                if scraper_instance:
+                    scraper_instance.cancelar()
+                break
+                
+            try:
+                await emit_log_update(f"Processando produto {i}/{total_urls}")
+                # Extrai a URL do dicionário
+                url = url_info['url']
+                resultado = scraper_instance.extrair_dados_nutricionais(url)
+                
+                if resultado:
+                    await emit_log_update(f"✅ Produto {i}/{total_urls} coletado com sucesso", "success")
+                else:
+                    await emit_log_update(f"❌ Falha ao coletar produto {i}/{total_urls}", "error")
+                
+            except Exception as e:
+                await emit_log_update(f"Erro ao processar produto: {str(e)}", "error")
                 continue
         
         if coleta_ativa:
