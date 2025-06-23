@@ -2,9 +2,24 @@ services:
   - type: web
     name: pao-de-queijo-scraping
     env: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      python -m pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: uvicorn api:socket_app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
-    autoDeploy: true 
+        value: 3.11.7
+      - key: PYTHONUNBUFFERED
+        value: "true"
+      - key: PIP_DISABLE_PIP_VERSION_CHECK
+        value: "1"
+      - key: PIP_NO_CACHE_DIR
+        value: "1"
+    autoDeploy: true
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+    buildFilter:
+      paths:
+      - requirements.txt
+      - "**/*.py" 
