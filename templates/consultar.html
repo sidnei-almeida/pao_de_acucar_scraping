@@ -1,0 +1,615 @@
+{% extends "base.html" %}
+
+{% block title %}Consultar Dados - API de Dados Nutricionais{% endblock %}
+
+{% block styles %}
+<style>
+/* Seção de Consulta */
+.consulta-section {
+    background: var(--dark-gray);
+    border-radius: 1.5rem;
+    padding: 3rem;
+    margin-bottom: 4rem;
+}
+
+.consulta-header {
+    margin-bottom: 3rem;
+}
+
+.consulta-title {
+    font-size: var(--font-size-large);
+    color: var(--white);
+    margin-bottom: 1rem;
+}
+
+.consulta-description {
+    color: var(--white-2);
+    font-size: var(--font-size-small);
+}
+
+/* Formulário de Busca */
+.search-form {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.search-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1.2rem;
+    color: var(--white);
+    font-size: var(--font-size-small);
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--pink);
+    box-shadow: 0 0 0 2px rgba(220, 20, 60, 0.2);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* Estilos específicos para o dropdown */
+select.search-input {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ffffff' d='M6 8.825L1.175 4 2.238 2.938 6 6.7l3.763-3.763L10.825 4z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1.2rem center;
+    padding-right: 3rem;
+}
+
+select.search-input option {
+    background-color: #1e1e1e;
+    color: var(--white);
+    padding: 1rem;
+}
+
+/* Tabela de Resultados */
+.results-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 2rem;
+}
+
+.results-table th,
+.results-table td {
+    padding: 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.results-table th {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--white);
+    font-weight: 600;
+    font-size: var(--font-size-small);
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+}
+
+.results-table td {
+    color: var(--white-2);
+    font-size: var(--font-size-small);
+}
+
+.results-table tbody tr {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.results-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Paginação */
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pagination-info {
+    color: var(--white-2);
+    font-size: var(--font-size-small);
+}
+
+.pagination-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.pagination-button {
+    background: transparent;
+    border: 2px solid var(--pink);
+    color: var(--white);
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: var(--font-size-small);
+    transition: all 0.3s ease;
+}
+
+.pagination-button:hover:not(:disabled) {
+    background: var(--pink);
+}
+
+.pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Modal de Detalhes */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal.visible {
+    opacity: 1;
+}
+
+.modal-content {
+    position: relative;
+    background: var(--dark-gray);
+    border-radius: 1.5rem;
+    padding: 3rem;
+    max-width: 60rem;
+    margin: 5% auto;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal.visible .modal-content {
+    transform: translateY(0);
+}
+
+.modal-close {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    background: transparent;
+    border: none;
+    color: var(--white-2);
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.modal-close:hover {
+    color: var(--pink);
+}
+
+.modal-title {
+    font-size: var(--font-size-large);
+    color: var(--white);
+    margin-bottom: 2rem;
+}
+
+.nutrient-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.nutrient-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 1.5rem;
+    border-radius: 1rem;
+}
+
+.nutrient-label {
+    color: var(--white-2);
+    font-size: var(--font-size-small);
+    margin-bottom: 0.5rem;
+}
+
+.nutrient-value {
+    color: var(--white);
+    font-size: var(--font-size-medium);
+    font-weight: 600;
+}
+
+.modal-actions {
+    text-align: center;
+    margin-top: 3rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .search-form {
+        flex-direction: column;
+    }
+
+    .results-table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .modal-content {
+        margin: 5% 2rem;
+    }
+
+    .nutrient-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Estados de Erro e Vazio */
+.empty-state,
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+    margin: 2rem 0;
+}
+
+.empty-state-icon,
+.error-state-icon {
+    font-size: 4rem;
+    color: var(--white-2);
+    margin-bottom: 2rem;
+}
+
+.error-state-icon {
+    color: var(--pink);
+}
+
+.empty-state-title,
+.error-state-title {
+    font-size: var(--font-size-medium);
+    color: var(--white);
+    margin-bottom: 1rem;
+}
+
+.empty-state-description,
+.error-state-description {
+    color: var(--white-2);
+    font-size: var(--font-size-small);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-size: var(--font-size-small);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn--primary {
+    background: var(--pink);
+    color: var(--white);
+    border: none;
+}
+
+.btn--primary:hover {
+    background: var(--pink-dark);
+}
+
+.btn i {
+    font-size: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="consulta-section">
+    <div class="consulta-header">
+        <h2 class="consulta-title">Consultar Dados</h2>
+        <p class="consulta-description">Pesquise e visualize os dados nutricionais coletados</p>
+    </div>
+
+    <div class="search-form">
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nome do produto...">
+        <select id="categoriaSelect" class="search-input">
+            <option value="">Todas as categorias</option>
+        </select>
+    </div>
+
+    <!-- Estado Inicial/Vazio -->
+    <div id="emptyState" class="empty-state">
+        <div class="empty-state-icon">
+            <i class="fas fa-database"></i>
+        </div>
+        <h3 class="empty-state-title">Nenhum dado disponível</h3>
+        <p class="empty-state-description">
+            Parece que ainda não há dados nutricionais coletados.
+            <br>
+            Vá para a página de coleta para começar a coletar dados.
+        </p>
+        <a href="/coletar" class="btn btn--primary">
+            <i class="fas fa-plus"></i>
+            Iniciar Coleta
+        </a>
+    </div>
+
+    <!-- Erro -->
+    <div id="errorState" class="error-state" style="display: none;">
+        <div class="error-state-icon">
+            <i class="fas fa-exclamation-circle"></i>
+        </div>
+        <h3 class="error-state-title">Ops! Algo deu errado</h3>
+        <p class="error-state-description" id="errorMessage">
+            Ocorreu um erro ao carregar os dados. Por favor, tente novamente.
+        </p>
+        <button class="btn btn--primary" onclick="carregarDados()">
+            <i class="fas fa-sync"></i>
+            Tentar Novamente
+        </button>
+    </div>
+
+    <!-- Tabela de Resultados -->
+    <div id="resultsContainer" style="display: none;">
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Porção</th>
+                    <th>Calorias</th>
+                    <th>Proteínas</th>
+                    <th>Carboidratos</th>
+                    <th>Gorduras</th>
+                </tr>
+            </thead>
+            <tbody id="resultsBody"></tbody>
+        </table>
+
+        <!-- Paginação -->
+        <div class="pagination">
+            <div class="pagination-info">
+                Mostrando <span id="startRange">0</span>-<span id="endRange">0</span> de <span id="totalItems">0</span> resultados
+            </div>
+            <div class="pagination-controls">
+                <button id="prevPage" class="pagination-button" disabled>
+                    <i class="fas fa-chevron-left"></i> Anterior
+                </button>
+                <button id="nextPage" class="pagination-button" disabled>
+                    Próximo <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal de Detalhes -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="fecharModal()">&times;</button>
+        <h3 class="modal-title" id="modalTitle">Detalhes do Produto</h3>
+        <div class="nutrient-grid" id="modalDetails"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 0;
+const itemsPerPage = 10;
+let totalResults = 0;
+let allProducts = [];
+
+// Função para carregar as categorias
+async function carregarCategorias() {
+    try {
+        const response = await fetch('/categorias');
+        const data = await response.json();
+        
+        const categoriaSelect = document.getElementById('categoriaSelect');
+        data.categorias.forEach(categoria => {
+            const option = document.createElement('option');
+            option.value = categoria.nome.toLowerCase();
+            option.textContent = categoria.nome;
+            categoriaSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar categorias:', error);
+    }
+}
+
+// Função para carregar os dados
+async function carregarDados() {
+    const searchInput = document.getElementById('searchInput');
+    const categoriaSelect = document.getElementById('categoriaSelect');
+    const emptyState = document.getElementById('emptyState');
+    const errorState = document.getElementById('errorState');
+    const resultsContainer = document.getElementById('resultsContainer');
+
+    try {
+        const response = await fetch(`/produtos?skip=${currentPage * itemsPerPage}&limit=${itemsPerPage}&nome=${searchInput.value}&categoria=${categoriaSelect.value}`);
+        
+        if (!response.ok) {
+            if (response.status === 404) {
+                emptyState.style.display = 'flex';
+                errorState.style.display = 'none';
+                resultsContainer.style.display = 'none';
+                return;
+            }
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Mostra a tabela e esconde estados de erro/vazio
+        emptyState.style.display = 'none';
+        errorState.style.display = 'none';
+        resultsContainer.style.display = 'block';
+
+        // Atualiza a tabela
+        const tbody = document.getElementById('resultsBody');
+        tbody.innerHTML = '';
+
+        data.forEach(produto => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${produto.nome}</td>
+                <td>${produto.categoria || '-'}</td>
+                <td>${produto.porcao}g</td>
+                <td>${produto.calorias} kcal</td>
+                <td>${produto.proteinas}g</td>
+                <td>${produto.carboidratos}g</td>
+                <td>${produto.gorduras}g</td>
+            `;
+            row.onclick = () => mostrarDetalhes(produto);
+            tbody.appendChild(row);
+        });
+
+        // Atualiza a paginação
+        atualizarPaginacao(data.length);
+
+    } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        emptyState.style.display = 'none';
+        errorState.style.display = 'flex';
+        resultsContainer.style.display = 'none';
+        document.getElementById('errorMessage').textContent = error.message;
+    }
+}
+
+// Função para atualizar a paginação
+function atualizarPaginacao(resultCount) {
+    const startRange = document.getElementById('startRange');
+    const endRange = document.getElementById('endRange');
+    const totalItems = document.getElementById('totalItems');
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+
+    const start = currentPage * itemsPerPage + 1;
+    const end = start + resultCount - 1;
+    totalResults = end; // Atualiza o total de resultados
+
+    startRange.textContent = resultCount === 0 ? 0 : start;
+    endRange.textContent = end;
+    totalItems.textContent = totalResults;
+
+    prevButton.disabled = currentPage === 0;
+    nextButton.disabled = resultCount < itemsPerPage;
+}
+
+// Função para mostrar detalhes do produto
+function mostrarDetalhes(produto) {
+    const modal = document.getElementById('detailsModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDetails = document.getElementById('modalDetails');
+
+    modalTitle.textContent = produto.nome;
+    modalDetails.innerHTML = `
+        <div class="nutrient-card">
+            <div class="nutrient-label">Porção</div>
+            <div class="nutrient-value">${produto.porcao}g</div>
+        </div>
+        <div class="nutrient-card">
+            <div class="nutrient-label">Calorias</div>
+            <div class="nutrient-value">${produto.calorias} kcal</div>
+        </div>
+        <div class="nutrient-card">
+            <div class="nutrient-label">Proteínas</div>
+            <div class="nutrient-value">${produto.proteinas}g</div>
+        </div>
+        <div class="nutrient-card">
+            <div class="nutrient-label">Carboidratos</div>
+            <div class="nutrient-value">${produto.carboidratos}g</div>
+        </div>
+        <div class="nutrient-card">
+            <div class="nutrient-label">Gorduras Totais</div>
+            <div class="nutrient-value">${produto.gorduras}g</div>
+        </div>
+        <div class="nutrient-card">
+            <div class="nutrient-label">Gorduras Saturadas</div>
+            <div class="nutrient-value">${produto.gorduras_saturadas}g</div>
+        </div>
+        <div class="nutrient-card">
+            <div class="nutrient-label">Fibras</div>
+            <div class="nutrient-value">${produto.fibras}g</div>
+        </div>
+        <div class="nutrient-card">
+            <div class="nutrient-label">Açúcares</div>
+            <div class="nutrient-value">${produto.acucares}g</div>
+        </div>
+        <div class="nutrient-card">
+            <div class="nutrient-label">Sódio</div>
+            <div class="nutrient-value">${produto.sodio}mg</div>
+        </div>
+    `;
+
+    modal.style.display = 'block';
+    setTimeout(() => modal.classList.add('visible'), 10);
+}
+
+// Função para fechar o modal
+function fecharModal() {
+    const modal = document.getElementById('detailsModal');
+    modal.classList.remove('visible');
+    setTimeout(() => modal.style.display = 'none', 300);
+}
+
+// Event Listeners
+document.getElementById('searchInput').addEventListener('input', () => {
+    currentPage = 0;
+    carregarDados();
+});
+
+document.getElementById('categoriaSelect').addEventListener('change', () => {
+    currentPage = 0;
+    carregarDados();
+});
+
+document.getElementById('prevPage').addEventListener('click', () => {
+    if (currentPage > 0) {
+        currentPage--;
+        carregarDados();
+    }
+});
+
+document.getElementById('nextPage').addEventListener('click', () => {
+    currentPage++;
+    carregarDados();
+});
+
+// Fechar modal ao clicar fora
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('detailsModal');
+    if (event.target === modal) {
+        fecharModal();
+    }
+});
+
+// Carregar dados iniciais
+document.addEventListener('DOMContentLoaded', () => {
+    carregarCategorias();
+    carregarDados();
+});
+</script>
+{% endblock %} 

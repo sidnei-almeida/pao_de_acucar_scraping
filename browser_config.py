@@ -6,17 +6,30 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.os_manager import ChromeType
+from webdriver_manager.opera import OperaDriverManager
 
 def get_chrome_version(binary_path):
     """
-    Tenta obter a versão do Chrome/Chromium usando o binário especificado.
+    Tenta obter a versão do Chrome/Chromium/Opera usando o binário especificado.
     """
     try:
         if platform.system().lower() == 'windows':
             import winreg
-            key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r'Software\Google\Chrome\BLBeacon')
-            version, _ = winreg.QueryValueEx(key, 'version')
-            return version
+            # Tenta diferentes caminhos de registro para diferentes navegadores
+            registry_paths = [
+                (winreg.HKEY_CURRENT_USER, r'Software\Google\Chrome\BLBeacon'),
+                (winreg.HKEY_CURRENT_USER, r'Software\Opera Software\Opera GX Stable'),
+                (winreg.HKEY_CURRENT_USER, r'Software\Opera Software\Opera Stable')
+            ]
+            
+            for root_key, sub_key in registry_paths:
+                try:
+                    key = winreg.OpenKey(root_key, sub_key)
+                    version, _ = winreg.QueryValueEx(key, 'version')
+                    return version
+                except:
+                    continue
+            return None
         else:
             cmd = [binary_path, '--version']
             process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -29,16 +42,19 @@ def get_chrome_version(binary_path):
 
 def find_chromedriver():
     """
-    Procura o chromedriver no sistema.
+    Procura o chromedriver/operadriver no sistema.
     """
     system = platform.system().lower()
     if system == 'windows':
-        paths = ['chromedriver.exe']
+        paths = ['chromedriver.exe', 'operadriver.exe']
     else:
         paths = [
             '/usr/bin/chromedriver',
             '/usr/local/bin/chromedriver',
-            'chromedriver'
+            '/usr/bin/operadriver',
+            '/usr/local/bin/operadriver',
+            'chromedriver',
+            'operadriver'
         ]
     
     for path in paths:
@@ -50,8 +66,8 @@ def find_chromedriver():
                                         stderr=subprocess.PIPE)
                 output, _ = process.communicate()
                 if process.returncode == 0:
-                    print(f"ChromeDriver encontrado em: {path}")
-                    print(f"Versão do ChromeDriver: {output.decode().strip()}")
+                    print(f"Driver encontrado em: {path}")
+                    print(f"Versão do driver: {output.decode().strip()}")
                     return path
         except Exception:
             continue
@@ -60,7 +76,7 @@ def find_chromedriver():
 
 def detectar_navegador():
     """
-    Detecta o navegador disponível (Chrome ou Chromium) baseado no sistema operacional.
+    Detecta o navegador disponível (Chrome, Chromium ou Opera) baseado no sistema operacional.
     Retorna o tipo do navegador e o caminho do binário (se encontrado).
     """
     sistema = platform.system().lower()
@@ -70,7 +86,8 @@ def detectar_navegador():
     navegadores = {
         'linux': {
             'chrome': ['/usr/bin/google-chrome', '/usr/bin/google-chrome-stable'],
-            'chromium': ['/usr/bin/chromium', '/usr/bin/chromium-browser']
+            'chromium': ['/usr/bin/chromium', '/usr/bin/chromium-browser'],
+            'opera': ['/usr/bin/opera', '/usr/bin/opera-gx']
         },
         'windows': {
             'chrome': [
@@ -80,11 +97,21 @@ def detectar_navegador():
             'chromium': [
                 r'C:\Program Files\Chromium\Application\chrome.exe',
                 r'C:\Program Files (x86)\Chromium\Application\chrome.exe'
+            ],
+            'opera': [
+                r'C:\Program Files\Opera GX\opera.exe',
+                r'C:\Program Files\Opera\opera.exe',
+                r'C:\Program Files (x86)\Opera GX\opera.exe',
+                r'C:\Program Files (x86)\Opera\opera.exe'
             ]
         },
         'darwin': {  # macOS
             'chrome': ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'],
-            'chromium': ['/Applications/Chromium.app/Contents/MacOS/Chromium']
+            'chromium': ['/Applications/Chromium.app/Contents/MacOS/Chromium'],
+            'opera': [
+                '/Applications/Opera GX.app/Contents/MacOS/Opera',
+                '/Applications/Opera.app/Contents/MacOS/Opera'
+            ]
         }
     }
     
@@ -108,18 +135,15 @@ def detectar_navegador():
         except Exception as e:
             print(f"Erro ao verificar distribuição Linux: {str(e)}")
     
-    # No Windows, tenta Chrome primeiro
-    if sistema == 'windows':
-        # Procura o Chrome primeiro no Windows
-        for path in navegadores[sistema]['chrome']:
-            if os.path.exists(path):
-                print(f"Chrome encontrado em: {path}")
-                return ChromeType.GOOGLE, path
+    # Tenta encontrar o Opera primeiro
+    for path in navegadores[sistema]['opera']:
+        if os.path.exists(path):
+            print(f"Opera encontrado em: {path}")
+            return 'opera', path
     
-    # Para outros sistemas ou se não encontrou o navegador preferido,
-    # tenta todos os navegadores disponíveis
-    for browser_type, paths in navegadores[sistema].items():
-        for path in paths:
+    # Depois tenta Chrome/Chromium
+    for browser_type in ['chrome', 'chromium']:
+        for path in navegadores[sistema][browser_type]:
             if os.path.exists(path):
                 print(f"Navegador encontrado: {browser_type} em {path}")
                 version = get_chrome_version(path)
@@ -128,13 +152,12 @@ def detectar_navegador():
                 return ChromeType.CHROMIUM if browser_type == 'chromium' else ChromeType.GOOGLE, path
     
     # Se nenhum navegador for encontrado, usa o padrão do sistema
-    default_type = ChromeType.CHROMIUM if sistema == 'linux' else ChromeType.GOOGLE
-    print(f"Nenhum navegador encontrado. Usando tipo padrão: {default_type}")
-    return default_type, None
+    print("Nenhum navegador encontrado. Usando Chrome como padrão.")
+    return ChromeType.GOOGLE, None
 
 def configurar_driver():
     """
-    Configura e retorna uma instância do Chrome/Chromium usando o webdriver-manager.
+    Configura e retorna uma instância do navegador usando o webdriver-manager.
     O webdriver será baixado automaticamente se necessário.
     """
     # Detecta o tipo de navegador
@@ -146,49 +169,64 @@ def configurar_driver():
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
+    options.add_argument("--disable-gpu")  # Importante para modo headless
+    options.add_argument("--disable-extensions")  # Desativa extensões
+    options.add_argument("--disable-dev-tools")  # Desativa ferramentas de desenvolvimento
+    options.add_argument("--no-first-run")  # Pula a primeira execução
+    options.add_argument("--no-default-browser-check")  # Não verifica navegador padrão
+    options.add_argument("--disable-blink-features=AutomationControlled")  # Evita detecção de automação
     
     # Define o caminho do binário se foi encontrado
     if binary_location:
         print(f"Usando binário do navegador em: {binary_location}")
         options.binary_location = binary_location
     
-    # Primeiro, tenta usar o chromedriver do sistema
-    chromedriver_path = find_chromedriver()
-    if chromedriver_path:
-        try:
-            print(f"Tentando usar ChromeDriver do sistema em: {chromedriver_path}")
-            service = Service(executable_path=chromedriver_path)
+    try:
+        # Se for Opera, usa o OperaDriverManager
+        if browser_type == 'opera':
+            print("Configurando Opera WebDriver...")
+            driver_path = OperaDriverManager().install()
+            service = Service(driver_path)
             driver = webdriver.Chrome(service=service, options=options)
-            print("Driver configurado com sucesso usando ChromeDriver do sistema")
+            print("Driver do Opera configurado com sucesso")
+            return driver
+        
+        # Para Chrome/Chromium
+        print(f"Configurando {'Chrome' if browser_type == ChromeType.GOOGLE else 'Chromium'} WebDriver...")
+        
+        try:
+            # Tenta primeiro com o chromedriver do sistema
+            system_driver = '/usr/bin/chromedriver'
+            if os.path.exists(system_driver):
+                print(f"Usando chromedriver do sistema em: {system_driver}")
+                service = Service(system_driver)
+                driver = webdriver.Chrome(service=service, options=options)
+                print("Driver configurado com sucesso usando chromedriver do sistema")
+                return driver
+        except Exception as e:
+            print(f"Não foi possível usar o chromedriver do sistema: {str(e)}")
+        
+        # Se não funcionar com o chromedriver do sistema, tenta com o webdriver-manager
+        try:
+            driver_path = ChromeDriverManager(chrome_type=browser_type).install()
+            service = Service(driver_path)
+            driver = webdriver.Chrome(service=service, options=options)
+            print("Driver configurado com sucesso usando webdriver-manager")
             return driver
         except Exception as e:
-            print(f"Erro ao usar ChromeDriver do sistema: {str(e)}")
-    
-    try:
-        # Se não encontrou ou falhou com o chromedriver do sistema,
-        # tenta baixar e usar o webdriver-manager
-        print("Baixando/verificando webdriver...")
-        driver_path = ChromeDriverManager(chrome_type=browser_type).install()
-        print(f"Driver path: {driver_path}")
-        service = Service(driver_path)
-        
-        # Cria e retorna o driver
-        print("Iniciando o webdriver...")
-        driver = webdriver.Chrome(service=service, options=options)
-        print(f"Driver configurado com sucesso usando {'Chromium' if browser_type == ChromeType.CHROMIUM else 'Chrome'}")
-        return driver
-    except Exception as e:
-        print(f"Erro ao configurar o driver: {str(e)}")
-        # Se falhar com Chromium, tenta com Chrome
-        if browser_type == ChromeType.CHROMIUM:
-            print("Tentando configurar com Chrome como fallback...")
-            try:
+            print(f"Erro ao configurar com webdriver-manager: {str(e)}")
+            
+            # Última tentativa: usar o Chrome como fallback
+            if browser_type != ChromeType.GOOGLE:
+                print("Tentando configurar com Chrome como última opção...")
                 driver_path = ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install()
                 service = Service(driver_path)
                 driver = webdriver.Chrome(service=service, options=options)
                 print("Driver configurado com sucesso usando Chrome")
                 return driver
-            except Exception as e2:
-                print(f"Erro ao configurar Chrome como fallback: {str(e2)}")
-                raise
-        raise 
+            
+            raise e
+        
+    except Exception as e:
+        print(f"Erro fatal ao configurar o driver: {str(e)}")
+        raise Exception(f"Não foi possível configurar o WebDriver. Certifique-se de que o Chrome, Chromium ou Opera esteja instalado. Erro: {str(e)}") 

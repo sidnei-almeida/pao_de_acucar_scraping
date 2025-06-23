@@ -139,7 +139,7 @@ class Scraper:
                     const texto = elemento.textContent;
                     if (texto.toLowerCase().includes('porção') || texto.toLowerCase().includes('porcao')) {
                         console.log('Texto com porção:', texto);
-                        const match = texto.match(/[Pp]or[cç][aã]o\s+(?:de\s+)?(\d+)\s*(?:g|G|gr|GR|grama|gramas|GRAMAS)(?:\s*[-]\s*.*)?/);
+                        const match = texto.match(/[Pp]or[cç][aã]o\\s+(?:de\\s+)?(\\d+)\\s*(?:g|G|gr|GR|grama|gramas|GRAMAS)(?:\\s*[-]\\s*.*)?/);
                         if (match) {
                             porcao = match[1];
                             console.log('Porção encontrada:', porcao);
@@ -226,92 +226,65 @@ class Scraper:
 
     def processar_arquivo_urls(self, arquivo_urls):
         """
-        Processa um arquivo CSV contendo URLs e realiza o scraping dos dados nutricionais.
+        Processa um arquivo CSV contendo URLs dos produtos.
         
         Args:
-            arquivo_urls (str): Caminho para o arquivo CSV contendo as URLs
+            arquivo_urls (str): Caminho para o arquivo CSV com as URLs
         """
         try:
-            # Inicializa o driver se necessário
-            if not self.driver:
-                self.inicializar_driver()
-
-            # Lê o arquivo CSV com as URLs
+            # Lê o arquivo de URLs
             df_urls = pd.read_csv(arquivo_urls)
+            total_produtos = len(df_urls)
+            logging.info(f"Iniciando coleta de dados para {total_produtos} produtos")
             
-            # Inicializa o DataFrame para armazenar os dados nutricionais
-            df_produtos = pd.DataFrame()
+            # Lista para armazenar os dados coletados
+            dados_coletados = []
+            
+            # Configura e abre o navegador
+            driver = self.inicializar_driver()
             
             # Processa cada URL
-            total_urls = len(df_urls)
             for idx, row in df_urls.iterrows():
-                url = row['url']  # Assume que a coluna com as URLs se chama 'url'
-                logging.info(f"Processando URL {idx + 1}/{total_urls}: {url}")
-                
                 try:
-                    # Extrai os dados nutricionais
+                    url = row['url']
+                    nome = row['nome']
+                    
+                    # Log detalhado do progresso
+                    logging.info(f"Coletando dados do produto: {nome} ({idx + 1} de {total_produtos})")
+                    
+                    # Acessa a URL do produto
+                    driver.get(url)
+                    time.sleep(3)  # Espera o carregamento
+                    
+                    # Coleta os dados nutricionais
                     dados = self.extrair_dados_nutricionais(url)
                     if dados:
-                        # Adiciona os dados ao DataFrame
-                        df_produtos = pd.concat([df_produtos, pd.DataFrame([dados])], ignore_index=True)
+                        dados['URL'] = url
+                        dados['NOME_PRODUTO'] = nome
+                        dados_coletados.append(dados)
+                        
                 except Exception as e:
-                    logging.error(f"Erro ao processar URL {url}: {str(e)}")
+                    logging.error(f"Erro ao processar produto {nome}: {str(e)}")
                     continue
             
-            # Salva os dados em um arquivo CSV
-            if not df_produtos.empty:
-                # Renomeia as colunas para o formato padronizado
-                mapeamento_colunas = {
-                    'nome': 'NOME_PRODUTO',
-                    'url': 'URL',
-                    'porcao': 'PORCAO (g)',
-                    'calorias': 'CALORIAS (kcal)',
-                    'carboidratos': 'CARBOIDRATOS (g)',
-                    'proteinas': 'PROTEINAS (g)',
-                    'gorduras': 'GORDURAS_TOTAIS (g)',
-                    'gorduras_saturadas': 'GORDURAS_SATURADAS (g)',
-                    'fibras': 'FIBRAS (g)',
-                    'acucares': 'ACUCARES (g)',
-                    'sodio': 'SODIO (mg)'
-                }
+            # Fecha o navegador
+            self.fechar_driver()
+            
+            # Cria o DataFrame com os dados coletados
+            if dados_coletados:
+                df_dados = pd.DataFrame(dados_coletados)
                 
-                # Renomeia as colunas
-                df_produtos = df_produtos.rename(columns=mapeamento_colunas)
+                # Salva os dados
+                modo_arquivo = 'a' if os.path.exists('dados_nutricionais.csv') else 'w'
+                df_dados.to_csv('dados_nutricionais.csv', mode=modo_arquivo, header=(modo_arquivo == 'w'), index=False)
                 
-                # Reordena as colunas em uma ordem lógica
-                ordem_colunas = [
-                    'NOME_PRODUTO',
-                    'URL',
-                    'PORCAO (g)',
-                    'CALORIAS (kcal)',
-                    'CARBOIDRATOS (g)',
-                    'PROTEINAS (g)',
-                    'GORDURAS_TOTAIS (g)',
-                    'GORDURAS_SATURADAS (g)',
-                    'FIBRAS (g)',
-                    'ACUCARES (g)',
-                    'SODIO (mg)'
-                ]
-                
-                # Garante que todas as colunas existam, mesmo que vazias
-                for coluna in ordem_colunas:
-                    if coluna not in df_produtos.columns:
-                        df_produtos[coluna] = None
-                
-                # Reordena as colunas
-                df_produtos = df_produtos[ordem_colunas]
-                
-                nome_arquivo = "dados_nutricionais.csv"
-                df_produtos.to_csv(nome_arquivo, index=False)
-                logging.info(f"Dados salvos em {nome_arquivo}")
+                logging.info(f"Dados coletados com sucesso para {len(dados_coletados)} produtos")
             else:
-                logging.warning("Nenhum dado foi coletado!")
+                logging.warning("Nenhum dado foi coletado")
                 
         except Exception as e:
             logging.error(f"Erro ao processar arquivo de URLs: {str(e)}")
-            raise
-        finally:
-            self.fechar_driver()
+            raise e
 
 if __name__ == "__main__":
     logger.info("Este arquivo não deve ser executado diretamente. Use o main.py")
