@@ -13,8 +13,8 @@
             <select name="modo">
                 <option value="teste">Modo Teste - Coleta limitada para testes</option>
                 <option value="ilimitado">Modo Ilimitado - Coleta sem limites</option>
-            </select>
-        </div>
+                </select>
+            </div>
 
         <div class="select-container" id="categoriasGroup">
             <label class="select-label">Selecione as Categorias</label>
@@ -34,19 +34,19 @@
                 <option value="13">Salgadinhos e Aperitivos</option>
             </select>
             <span class="select-help">Pressione CTRL para selecionar múltiplas categorias</span>
-        </div>
+            </div>
 
-        <button type="submit" class="btn btn--primary">
-            <i class="fas fa-play"></i>
-            Iniciar Coleta
-        </button>
-    </form>
+            <button type="submit" class="btn btn--primary">
+                <i class="fas fa-play"></i>
+                Iniciar Coleta
+            </button>
+        </form>
 
     <div id="log-container" class="log-container" style="display: none;">
         <h2>Log de Atividades</h2>
         <div id="log-content" class="log-content"></div>
     </div>
-</div>
+        </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -80,12 +80,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Validação e envio do formulário
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
+
         const selectedCategories = Array.from(categoriasSelect.selectedOptions);
         if (selectedCategories.length === 0) {
-            alert('Por favor, selecione pelo menos uma categoria.');
-            return;
-        }
+                alert('Por favor, selecione pelo menos uma categoria.');
+                return;
+            }
 
         // Mostra o container de log
         logContainer.style.display = 'block';

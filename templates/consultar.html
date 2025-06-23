@@ -419,17 +419,17 @@ select.search-input option {
         </table>
 
         <!-- Paginação -->
-        <div class="pagination">
-            <div class="pagination-info">
+    <div class="pagination">
+        <div class="pagination-info">
                 Mostrando <span id="startRange">0</span>-<span id="endRange">0</span> de <span id="totalItems">0</span> resultados
-            </div>
-            <div class="pagination-controls">
+        </div>
+        <div class="pagination-controls">
                 <button id="prevPage" class="pagination-button" disabled>
                     <i class="fas fa-chevron-left"></i> Anterior
-                </button>
+            </button>
                 <button id="nextPage" class="pagination-button" disabled>
                     Próximo <i class="fas fa-chevron-right"></i>
-                </button>
+            </button>
             </div>
         </div>
     </div>
@@ -505,13 +505,13 @@ async function carregarDados() {
         data.forEach(produto => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${produto.nome}</td>
+            <td>${produto.nome}</td>
                 <td>${produto.categoria || '-'}</td>
-                <td>${produto.porcao}g</td>
+            <td>${produto.porcao}g</td>
                 <td>${produto.calorias} kcal</td>
-                <td>${produto.proteinas}g</td>
-                <td>${produto.carboidratos}g</td>
-                <td>${produto.gorduras}g</td>
+            <td>${produto.proteinas}g</td>
+            <td>${produto.carboidratos}g</td>
+            <td>${produto.gorduras}g</td>
             `;
             row.onclick = () => mostrarDetalhes(produto);
             tbody.appendChild(row);

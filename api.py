@@ -447,7 +447,7 @@ async def iniciar_coleta(request: Request):
         # Processa os dados nutricionais
         if urls_selecionadas:
             await emit_log_update(f"Iniciando coleta de dados nutricionais para {len(urls_selecionadas)} produtos...", "info")
-            
+
             # Salva URLs em CSV temporário
             df_urls = pd.DataFrame(urls_selecionadas)
             temp_urls_file = f"urls_temp_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
@@ -456,7 +456,7 @@ async def iniciar_coleta(request: Request):
             # Faz o scraping
             scraper = Scraper()
             scraper.processar_arquivo_urls(temp_urls_file)
-            
+
             # Remove arquivo temporário
             if os.path.exists(temp_urls_file):
                 os.remove(temp_urls_file)
