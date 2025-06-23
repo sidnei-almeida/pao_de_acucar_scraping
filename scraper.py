@@ -18,8 +18,15 @@ from selenium.webdriver.support import expected_conditions as EC
 class Scraper:
     def __init__(self):
         self.driver = None
+        self.cancelado = False
+        self.configurar_driver()
     
-    def inicializar_driver(self):
+    def cancelar(self):
+        """Marca o scraper para cancelamento"""
+        self.cancelado = True
+        self.fechar_driver()
+    
+    def configurar_driver(self):
         """Inicializa o driver do navegador."""
         if not self.driver:
             self.driver = configurar_driver()
@@ -62,10 +69,14 @@ class Scraper:
         return texto
 
     def extrair_dados_nutricionais(self, url):
-        """Extrai dados nutricionais de um produto usando JavaScript."""
+        """Extrai dados nutricionais de um produto"""
+        if self.cancelado:
+            logger.warning("Operação cancelada")
+            return None
+            
         try:
             if not self.driver:
-                self.inicializar_driver()
+                self.configurar_driver()
 
             logger.info(f"Processando URL: {url}")
             self.driver.get(url)
@@ -205,6 +216,47 @@ class Scraper:
                 for chave, valor in resultado.items():
                     if chave not in ['nome', 'url']:
                         logger.info(f"{chave}: {valor}")
+                
+                # Converte os dados para float
+                for chave in ['porcao', 'calorias', 'carboidratos', 'proteinas', 'gorduras', 
+                            'gorduras_saturadas', 'fibras', 'acucares', 'sodio']:
+                    resultado[chave] = float(resultado[chave])
+                
+                # Adiciona data de coleta
+                data_coleta = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                
+                # Cria DataFrame com os dados já no formato final
+                df_novo = pd.DataFrame([{
+                    'NOME_PRODUTO': resultado['nome'],
+                    'URL': resultado['url'],
+                    'PORCAO (g)': resultado['porcao'],
+                    'CALORIAS (kcal)': resultado['calorias'],
+                    'CARBOIDRATOS (g)': resultado['carboidratos'],
+                    'PROTEINAS (g)': resultado['proteinas'],
+                    'GORDURAS_TOTAIS (g)': resultado['gorduras'],
+                    'GORDURAS_SATURADAS (g)': resultado['gorduras_saturadas'],
+                    'FIBRAS (g)': resultado['fibras'],
+                    'ACUCARES (g)': resultado['acucares'],
+                    'SODIO (mg)': resultado['sodio'],
+                    'data_coleta': data_coleta
+                }])
+                
+                # Verifica se o arquivo já existe
+                if os.path.exists('dados_nutricionais.csv'):
+                    # Lê o CSV existente
+                    df_existente = pd.read_csv('dados_nutricionais.csv')
+                    
+                    # Remove registros duplicados baseados na URL
+                    df_existente = df_existente[df_existente['URL'] != resultado['url']]
+                    
+                    # Concatena com dados existentes
+                    df_final = pd.concat([df_existente, df_novo], ignore_index=True)
+                else:
+                    df_final = df_novo
+                
+                # Salva no CSV
+                df_final.to_csv('dados_nutricionais.csv', index=False)
+                
                 return resultado
             else:
                 logger.error(f"Não foi possível extrair dados da URL {url}")
@@ -231,7 +283,7 @@ class Scraper:
             dados_coletados = []
             
             # Configura e abre o navegador
-            driver = self.inicializar_driver()
+            driver = self.configurar_driver()
             
             # Processa cada URL
             for idx, row in df_urls.iterrows():

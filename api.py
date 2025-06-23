@@ -15,6 +15,7 @@ import uvicorn
 from dotenv import load_dotenv
 import io
 import asyncio
+from threading import Thread
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -373,6 +374,20 @@ async def listar_produtos(
         # Lê o arquivo CSV
         df = pd.read_csv("dados_nutricionais.csv")
         
+        # Verifica se as colunas necessárias existem
+        colunas_esperadas = [
+            'NOME_PRODUTO', 'URL', 'PORCAO (g)', 'CALORIAS (kcal)', 
+            'CARBOIDRATOS (g)', 'PROTEINAS (g)', 'GORDURAS_TOTAIS (g)',
+            'GORDURAS_SATURADAS (g)', 'FIBRAS (g)', 'ACUCARES (g)', 'SODIO (mg)',
+            'data_coleta'
+        ]
+        colunas_faltantes = [col for col in colunas_esperadas if col not in df.columns]
+        if colunas_faltantes:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Colunas faltantes no CSV: {', '.join(colunas_faltantes)}"
+            )
+        
         # Aplica filtros se fornecidos
         if categoria:
             df = df[df['categoria'].str.contains(categoria, case=False, na=False)]
@@ -386,22 +401,43 @@ async def listar_produtos(
         # Converte para o formato da API
         produtos = []
         for _, row in df.iterrows():
-            produto = DadoNutricional(
-                nome=str(row['NOME_PRODUTO']),
-                url=str(row['URL']),
-                porcao=float(row['PORCAO (g)']),
-                calorias=float(row['CALORIAS (kcal)']),
-                carboidratos=float(row['CARBOIDRATOS (g)']),
-                proteinas=float(row['PROTEINAS (g)']),
-                gorduras=float(row['GORDURAS_TOTAIS (g)']),
-                gorduras_saturadas=float(row['GORDURAS_SATURADAS (g)']),
-                fibras=float(row['FIBRAS (g)']),
-                acucares=float(row['ACUCARES (g)']),
-                sodio=float(row['SODIO (mg)']),
-                categoria=str(row.get('categoria', '')),
-                data_coleta=row.get('data_coleta')
-            )
-            produtos.append(produto)
+            try:
+                # Garante que os valores numéricos sejam float
+                valores_numericos = {
+                    'PORCAO (g)': float(row['PORCAO (g)']),
+                    'CALORIAS (kcal)': float(row['CALORIAS (kcal)']),
+                    'CARBOIDRATOS (g)': float(row['CARBOIDRATOS (g)']),
+                    'PROTEINAS (g)': float(row['PROTEINAS (g)']),
+                    'GORDURAS_TOTAIS (g)': float(row['GORDURAS_TOTAIS (g)']),
+                    'GORDURAS_SATURADAS (g)': float(row['GORDURAS_SATURADAS (g)']),
+                    'FIBRAS (g)': float(row['FIBRAS (g)']),
+                    'ACUCARES (g)': float(row['ACUCARES (g)']),
+                    'SODIO (mg)': float(row['SODIO (mg)'])
+                }
+                
+                # Garante que a data seja string
+                data_coleta = str(row['data_coleta']) if pd.notna(row['data_coleta']) else None
+                
+                produto = DadoNutricional(
+                    nome=str(row['NOME_PRODUTO']),
+                    url=str(row['URL']),
+                    porcao=valores_numericos['PORCAO (g)'],
+                    calorias=valores_numericos['CALORIAS (kcal)'],
+                    carboidratos=valores_numericos['CARBOIDRATOS (g)'],
+                    proteinas=valores_numericos['PROTEINAS (g)'],
+                    gorduras=valores_numericos['GORDURAS_TOTAIS (g)'],
+                    gorduras_saturadas=valores_numericos['GORDURAS_SATURADAS (g)'],
+                    fibras=valores_numericos['FIBRAS (g)'],
+                    acucares=valores_numericos['ACUCARES (g)'],
+                    sodio=valores_numericos['SODIO (mg)'],
+                    categoria=str(row.get('categoria', '')),
+                    data_coleta=data_coleta
+                )
+                produtos.append(produto)
+            except Exception as e:
+                logger.error(f"Erro ao converter linha do CSV: {str(e)}")
+                logger.error(f"Dados da linha: {row.to_dict()}")
+                continue
         
         return produtos
     
@@ -457,12 +493,12 @@ async def cancelar_coleta():
         # Aguarda um momento para garantir que o loop de coleta foi interrompido
         await asyncio.sleep(1)
         
-        # Fecha o driver do Selenium se existir
+        # Cancela o scraper se existir
         if scraper_instance:
             try:
-                scraper_instance.fechar_driver()
+                scraper_instance.cancelar()  # Usa o novo método de cancelamento
             except Exception as e:
-                logger.error(f"Erro ao fechar driver: {str(e)}")
+                logger.error(f"Erro ao cancelar scraper: {str(e)}")
             finally:
                 scraper_instance = None
         
@@ -489,6 +525,8 @@ async def realizar_coleta(modo: str, categorias: List[str]):
         for categoria in categorias_selecionadas:
             if not coleta_ativa:
                 await emit_log_update("Coleta interrompida", "warning")
+                if scraper_instance:
+                    scraper_instance.cancelar()
                 break
                 
             try:
@@ -499,6 +537,8 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                 urls = collector.coletar_urls(url_categoria=categoria["url"], modo_teste=(modo == "teste"))
                 
                 if not coleta_ativa:
+                    if scraper_instance:
+                        scraper_instance.cancelar()
                     break
                 
                 await emit_log_update(f"Encontrados {len(urls)} produtos em {categoria['nome']}")
@@ -506,13 +546,20 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                 # Processa cada URL
                 for i, url_info in enumerate(urls, 1):
                     if not coleta_ativa:
+                        if scraper_instance:
+                            scraper_instance.cancelar()
                         break
                         
                     try:
                         await emit_log_update(f"Processando produto {i}/{len(urls)} de {categoria['nome']}")
                         # Extrai a URL do dicionário
                         url = url_info['url']
-                        scraper_instance.extrair_dados_nutricionais(url)
+                        resultado = scraper_instance.extrair_dados_nutricionais(url)
+                        
+                        if resultado:
+                            await emit_log_update(f"✅ Produto {i}/{len(urls)} coletado com sucesso", "success")
+                        else:
+                            await emit_log_update(f"❌ Falha ao coletar produto {i}/{len(urls)}", "error")
                         
                     except Exception as e:
                         await emit_log_update(f"Erro ao processar produto: {str(e)}", "error")
@@ -523,16 +570,17 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                 continue
         
         if coleta_ativa:
-            await emit_log_update("Coleta finalizada com sucesso", "success")
+            await emit_log_update("✅ Coleta finalizada com sucesso", "success")
         
     except Exception as e:
-        await emit_log_update(f"Erro durante a coleta: {str(e)}", "error")
+        await emit_log_update(f"❌ Erro durante a coleta: {str(e)}", "error")
     
     finally:
         coleta_ativa = False
         if scraper_instance:
-            scraper_instance.fechar_driver()
+            scraper_instance.cancelar()
             scraper_instance = None
+        await emit_log_update("Sistema pronto para nova coleta", "info")
 
 @app.get("/download-excel")
 async def download_excel():
