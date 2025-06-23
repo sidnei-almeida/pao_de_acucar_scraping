@@ -1,170 +1,100 @@
-# 🛒 Pão de Açucar Scraping
+# 🛒 Pão de Açúcar Scraping
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Selenium](https://img.shields.io/badge/selenium-4.0%2B-orange.svg)](https://www.selenium.dev/)
 [![Pandas](https://img.shields.io/badge/pandas-latest-blue.svg)](https://pandas.pydata.org/)
 
 ## 📝 Descrição
 
-O Pão de Açucar Scraping é um web scraper automatizado desenvolvido para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza técnicas avançadas de web scraping com Selenium para navegar de forma eficiente pelo site e extrair informações detalhadas sobre os produtos.
+O Pão de Açúcar Scraping é uma aplicação web desenvolvida por Sidnei Almeida para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza Selenium para navegar pelo site e extrair informações detalhadas sobre os produtos, apresentando uma interface web amigável para controle e visualização dos dados.
 
-## 🌟 Funcionalidades Principais
+## 🚀 Como Usar
 
-- 🔍 **Coleta Inteligente de URLs**
-  - Navegação automática por categorias de produtos
-  - Sistema de scrolling dinâmico para carregamento de mais produtos
-  - Coleta de URLs únicas evitando duplicatas
+### 1. Requisitos do Sistema
 
-- 📊 **Extração de Dados Nutricionais**
-  - Informações nutricionais detalhadas
-  - Dados de porções e medidas
-  - Categorização dos produtos
-
-- 💾 **Armazenamento e Exportação**
-  - Exportação em formato CSV e JSON
-  - Logs detalhados do processo de scraping
-  - Sistema de backup automático
-
-## 🏗️ Arquitetura do Projeto
-
-```
-pao_de_acucar_scraping/
-├── browser_config.py      # Configurações do navegador e Selenium
-├── url_collector.py       # Módulo de coleta de URLs
-├── scraper.py            # Core do scraping de dados
-├── scraping_log.py       # Sistema de logging
-├── main.py               # Ponto de entrada da aplicação
-└── requirements.txt      # Dependências do projeto
-```
-
-## 🔧 Requisitos do Sistema
-
-### Requisitos de Hardware
-- Processador: 1.6 GHz ou superior
-- Memória RAM: 4GB mínimo (8GB recomendado)
-- Espaço em Disco: 500MB livre
-- Conexão com a Internet: 5Mbps ou superior
-
-### Requisitos de Software
 - Python 3.8 ou superior
 - Google Chrome ou Chromium
-- Sistema Operacional:
-  - Windows 10/11
-  - Linux (kernel 4.x ou superior)
-  - macOS 10.14 ou superior
+- Conexão com a Internet
 
-## 📦 Instalação
-
-### Via pip (Recomendado)
+### 2. Instalação
 
 ```bash
 # Criar e ativar ambiente virtual
 python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# ou
-.\venv\Scripts\activate   # Windows
+
+# No Windows:
+.\venv\Scripts\activate
+
+# No Linux/macOS:
+source venv/bin/activate
 
 # Instalar dependências
 pip install -r requirements.txt
 ```
 
-### Via Docker
+### 3. Iniciando a Aplicação
 
+1. Com o ambiente virtual ativado, execute:
 ```bash
-# Construir a imagem
-docker build -t pao-de-acucar-scraper .
-
-# Executar o container
-docker run -v $(pwd)/data:/app/data pao-de-acucar-scraper
+python api.py
 ```
 
-## 🚀 Uso
-
-### Execução Básica
-
-```bash
-python main.py
+2. Você verá uma mensagem no terminal com a URL local, algo como:
+```
+INFO:     Started server process [12345]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
-### Opções de Configuração
+3. Copie a URL que aparece (ex: http://0.0.0.0:8000 ou http://127.0.0.1:8000) e cole no seu navegador
 
-```bash
-python main.py --max-urls 100 --categories "Alimentos,Bebidas" --debug
-```
+### 4. Usando a Interface Web
 
-### Parâmetros Disponíveis
+1. Na página inicial, você verá três opções:
+   - **Coletar Dados**: Para iniciar uma nova coleta
+   - **Consultar Dados**: Para ver os dados já coletados
+   - **Baixar Excel**: Para baixar os dados em formato Excel
 
-| Parâmetro | Descrição | Padrão |
-|-----------|-----------|--------|
-| --max-urls | Número máximo de URLs | 10 |
-| --scroll-limit | Limite de rolagens | 2 |
-| --page-limit | Limite de páginas | 1 |
-| --debug | Modo debug | False |
+2. Para coletar dados:
+   - Clique em "Coletar Dados"
+   - Selecione as categorias desejadas
+   - Escolha o modo de coleta (teste ou completo)
+   - Clique em "Iniciar Coleta"
+   - Acompanhe o progresso em tempo real
 
-## 📊 Estrutura dos Dados
+## 📊 Dados Coletados
 
-### Formato do CSV de Saída
+Para cada produto, são coletadas as seguintes informações:
+- Nome do produto
+- URL do produto
+- Categoria
+- Porção (g/ml)
+- Calorias
+- Carboidratos (g)
+- Proteínas (g)
+- Gorduras totais (g)
+- Gorduras saturadas (g)
+- Fibras (g)
+- Açúcares (g)
+- Sódio (mg)
 
-```csv
-produto,energia_kcal,proteinas_g,carboidratos_g,gorduras_totais_g,gorduras_saturadas_g,fibra_alimentar_g,sodio_mg
-Produto A,150,8,20,6,2,1,200
-```
+## ⚠️ Observações Importantes
 
-### Campos Coletados
+- A coleta pode levar alguns minutos dependendo da quantidade de produtos
+- Mantenha a janela do navegador aberta durante a coleta
+- Uma conexão estável com a internet é necessária
+- Os dados são salvos automaticamente em formato CSV
+- É possível cancelar a coleta a qualquer momento
 
-- **Informações Básicas**
-  - Nome do produto
-  - Marca
-  - Categoria
-  - Subcategoria
+## 📞 Contato
 
-- **Dados Nutricionais**
-  - Valor energético (kcal)
-  - Proteínas (g)
-  - Carboidratos (g)
-  - Gorduras totais (g)
-  - Gorduras saturadas (g)
-  - Fibra alimentar (g)
-  - Sódio (mg)
+Para dúvidas, sugestões ou reportar problemas, entre em contato com o desenvolvedor:
 
-## 📝 Logs e Monitoramento
-
-O sistema mantém logs detalhados em `scraping_log.py`:
-- Sucesso/falha na coleta de URLs
-- Tempo de execução
-- Erros encontrados
-- Estatísticas de coleta
-
-## ⚠️ Limitações Conhecidas
-
-- Rate limiting do site (máximo de 100 requisições/minuto)
-- Produtos sem informação nutricional são ignorados
-- Algumas categorias podem estar temporariamente indisponíveis
-
-## 🤝 Contribuindo
-
-1. Fork o projeto
-2. Crie sua Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a Branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📜 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-## 📞 Suporte
-
-- Abra uma issue para reportar bugs
-- Sugestões de melhorias são bem-vindas
-- Para questões de segurança, envie um email para [seu-email@exemplo.com]
-
-## 🙏 Agradecimentos
-
-- Equipe do Selenium pelo excelente framework
-- Comunidade Python pelos pacotes utilizados
-- Contribuidores do projeto
+**Sidnei Almeida**
+- Email: sidnei.almeida1806@gmail.com
+- LinkedIn: [Sidnei Almeida](https://www.linkedin.com/in/saaelmeida93/)
+- GitHub: [sidnei-almeida](https://github.com/sidnei-almeida)
 
 ---
-Desenvolvido com ❤️ pela comunidade open source
+Desenvolvido por Sidnei Almeida
