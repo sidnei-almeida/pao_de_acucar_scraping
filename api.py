@@ -9,24 +9,15 @@ from datetime import datetime
 import os
 from scraper import Scraper
 from url_collector import URLCollector
-import logging
+from scraping_log import logger
 import socketio
 import uvicorn
 from dotenv import load_dotenv
 import io
+import asyncio
 
 # Carrega variáveis de ambiente
 load_dotenv()
-
-# Configuração do logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler(f'api_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
-    ]
-)
 
 # Criando instância do Socket.IO
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
@@ -70,6 +61,10 @@ class URLCategoria(BaseModel):
 class ColetaRequest(BaseModel):
     modo: str
     categorias: List[str]
+
+# Variável global para controlar o estado da coleta
+coleta_ativa = False
+scraper_instance = None
 
 def get_system_metrics():
     """Obtém as métricas do sistema"""
@@ -217,7 +212,7 @@ async def coletar_urls(categoria: URLCategoria):
         return produtos
     
     except Exception as e:
-        logging.error(f"Erro ao coletar URLs: {str(e)}")
+        logger.error(f"Erro ao coletar URLs: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/coletar/dados", response_model=List[DadoNutricional])
@@ -270,7 +265,7 @@ async def coletar_dados(urls: List[ProdutoBase]):
             raise HTTPException(status_code=404, detail="Nenhum dado foi coletado")
     
     except Exception as e:
-        logging.error(f"Erro ao coletar dados: {str(e)}")
+        logger.error(f"Erro ao coletar dados: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/coletar/categoria", response_model=List[DadoNutricional])
@@ -285,20 +280,20 @@ async def coletar_categoria_completa(categoria: URLCategoria):
     - **modo_teste**: Se True, limita a quantidade de URLs coletadas
     """
     try:
-        logging.info(f"🔍 Iniciando coleta para categoria: {categoria.nome}")
-        logging.info(f"📊 Modo de coleta: {'Teste' if categoria.modo_teste else 'Completo'}")
+        logger.info(f"🔍 Iniciando coleta para categoria: {categoria.nome}")
+        logger.info(f"📊 Modo de coleta: {'Teste' if categoria.modo_teste else 'Completo'}")
         
         # Primeiro coleta as URLs
-        logging.info("🌐 Inicializando coletor de URLs...")
+        logger.info("🌐 Inicializando coletor de URLs...")
         collector = URLCollector(modo_teste=bool(categoria.modo_teste))
         
-        logging.info(f"📑 Coletando URLs da categoria {categoria.nome}...")
+        logger.info(f"📑 Coletando URLs da categoria {categoria.nome}...")
         urls = collector.coletar_urls(categoria.url)
-        logging.info(f"✅ URLs coletadas com sucesso! Total: {len(urls)} produtos encontrados")
+        logger.info(f"✅ URLs coletadas com sucesso! Total: {len(urls)} produtos encontrados")
         
         # Converte para o formato da API
         produtos = []
-        logging.info("🔄 Processando informações coletadas...")
+        logger.info("🔄 Processando informações coletadas...")
         for url_info in urls:
             produto = ProdutoBase(
                 url=str(url_info['url']),
@@ -308,8 +303,8 @@ async def coletar_categoria_completa(categoria: URLCategoria):
             produtos.append(produto)
         
         # Depois faz o scraping dos dados
-        logging.info("🤖 Iniciando coleta de dados nutricionais...")
-        logging.info("⚙️ Configurando scraper...")
+        logger.info("🤖 Iniciando coleta de dados nutricionais...")
+        logger.info("⚙️ Configurando scraper...")
         
         # Salva URLs em CSV temporário
         df_urls = pd.DataFrame([url.dict() for url in produtos])
@@ -318,12 +313,12 @@ async def coletar_categoria_completa(categoria: URLCategoria):
         
         # Faz o scraping
         scraper = Scraper()
-        logging.info("🔄 Processando arquivo de URLs...")
+        logger.info("🔄 Processando arquivo de URLs...")
         scraper.processar_arquivo_urls(temp_urls_file)
         
         # Lê os resultados
         if os.path.exists("dados_nutricionais.csv"):
-            logging.info("📊 Lendo dados coletados...")
+            logger.info("📊 Lendo dados coletados...")
             df_dados = pd.read_csv("dados_nutricionais.csv")
             
             # Converte para o formato da API
@@ -349,15 +344,15 @@ async def coletar_categoria_completa(categoria: URLCategoria):
             # Remove arquivo temporário
             if os.path.exists(temp_urls_file):
                 os.remove(temp_urls_file)
-                logging.info("🧹 Arquivos temporários removidos")
+                logger.info("🧹 Arquivos temporários removidos")
             
-            logging.info(f"✨ Coleta finalizada com sucesso! {len(produtos_coletados)} produtos processados")
+            logger.info(f"✨ Coleta finalizada com sucesso! {len(produtos_coletados)} produtos processados")
             return produtos_coletados
         else:
             raise HTTPException(status_code=404, detail="Nenhum dado foi coletado")
     
     except Exception as e:
-        logging.error(f"❌ Erro ao processar categoria: {str(e)}")
+        logger.error(f"❌ Erro ao processar categoria: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/produtos", response_model=List[DadoNutricional])
@@ -411,67 +406,133 @@ async def listar_produtos(
         return produtos
     
     except Exception as e:
-        logging.error(f"Erro ao listar produtos: {str(e)}")
+        logger.error(f"Erro ao listar produtos: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/coletar")
 async def iniciar_coleta(request: Request):
     """Inicia o processo de coleta de dados"""
+    global coleta_ativa, scraper_instance
+    
+    if coleta_ativa:
+        raise HTTPException(status_code=400, detail="Já existe uma coleta em andamento")
+    
     try:
-        # Recebe os dados do formulário
-        form_data = await request.form()
-        modo = form_data.get("modo")
-        categorias = form_data.getlist("categorias")
+        form = await request.form()
+        modo = form.get("modo", "teste")
+        categorias = form.getlist("categorias[]") if "categorias[]" in form else form.getlist("categorias")
         
         if not categorias:
-            raise HTTPException(status_code=400, detail="Selecione pelo menos uma categoria")
+            raise HTTPException(status_code=400, detail="Nenhuma categoria selecionada")
+        
+        # Marca a coleta como ativa
+        coleta_ativa = True
+        
+        # Inicializa o scraper
+        scraper_instance = Scraper()
+        
+        # Inicia a coleta em background
+        import asyncio
+        asyncio.create_task(realizar_coleta(modo, categorias))
+        
+        return {"status": "Coleta iniciada com sucesso"}
+        
+    except Exception as e:
+        coleta_ativa = False
+        scraper_instance = None
+        raise HTTPException(status_code=500, detail=str(e))
 
-        # Emite mensagem inicial
-        await emit_log_update("Iniciando processo de coleta...", "info")
+@app.post("/cancelar-coleta")
+async def cancelar_coleta():
+    """Cancela o processo de coleta em andamento"""
+    global coleta_ativa, scraper_instance
+    
+    if not coleta_ativa:
+        raise HTTPException(status_code=400, detail="Não há coleta em andamento")
+    
+    try:
+        # Primeiro marca como inativa para interromper o loop de coleta
+        coleta_ativa = False
         
-        # Obtém as URLs das categorias selecionadas
+        # Aguarda um momento para garantir que o loop de coleta foi interrompido
+        await asyncio.sleep(1)
+        
+        # Fecha o driver do Selenium se existir
+        if scraper_instance:
+            try:
+                scraper_instance.fechar_driver()
+            except Exception as e:
+                logger.error(f"Erro ao fechar driver: {str(e)}")
+            finally:
+                scraper_instance = None
+        
+        await emit_log_update("Coleta cancelada pelo usuário", "warning")
+        return {"status": "Coleta cancelada com sucesso"}
+        
+    except Exception as e:
+        logger.error(f"Erro ao cancelar coleta: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def realizar_coleta(modo: str, categorias: List[str]):
+    """Realiza a coleta de dados em background"""
+    global coleta_ativa, scraper_instance
+    
+    try:
+        # Obtém as URLs das categorias
         todas_categorias = (await listar_categorias())["categorias"]
-        urls_selecionadas = []
+        # Converte os IDs para string para garantir a comparação correta
+        categorias = [str(cat) for cat in categorias]
+        categorias_selecionadas = [cat for cat in todas_categorias if str(cat["id"]) in categorias]
         
-        for categoria in todas_categorias:
-            if categoria["id"] in categorias:
-                await emit_log_update(f"Coletando URLs da categoria: {categoria['nome']}", "info")
+        await emit_log_update(f"Iniciando coleta para {len(categorias_selecionadas)} categorias")
+        
+        for categoria in categorias_selecionadas:
+            if not coleta_ativa:
+                await emit_log_update("Coleta interrompida", "warning")
+                break
+                
+            try:
+                await emit_log_update(f"Processando categoria: {categoria['nome']}")
                 
                 # Coleta URLs da categoria
-                collector = URLCollector(modo_teste=(modo == "teste"))
-                urls = collector.coletar_urls(categoria["url"])
-                urls_selecionadas.extend(urls)
+                collector = URLCollector()
+                urls = collector.coletar_urls(url_categoria=categoria["url"], modo_teste=(modo == "teste"))
                 
-                await emit_log_update(f"Encontrados {len(urls)} produtos em {categoria['nome']}", "success")
-
-        # Processa os dados nutricionais
-        if urls_selecionadas:
-            await emit_log_update(f"Iniciando coleta de dados nutricionais para {len(urls_selecionadas)} produtos...", "info")
-
-            # Salva URLs em CSV temporário
-            df_urls = pd.DataFrame(urls_selecionadas)
-            temp_urls_file = f"urls_temp_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-            df_urls.to_csv(temp_urls_file, index=False)
-            
-            # Faz o scraping
-            scraper = Scraper()
-            scraper.processar_arquivo_urls(temp_urls_file)
-
-            # Remove arquivo temporário
-            if os.path.exists(temp_urls_file):
-                os.remove(temp_urls_file)
-            
-            await emit_log_update("Coleta de dados concluída com sucesso!", "success")
-            
-            return {"status": "success", "message": "Coleta iniciada com sucesso"}
-        else:
-            await emit_log_update("Nenhum produto encontrado nas categorias selecionadas", "warning")
-            return {"status": "warning", "message": "Nenhum produto encontrado"}
-
+                if not coleta_ativa:
+                    break
+                
+                await emit_log_update(f"Encontrados {len(urls)} produtos em {categoria['nome']}")
+                
+                # Processa cada URL
+                for i, url_info in enumerate(urls, 1):
+                    if not coleta_ativa:
+                        break
+                        
+                    try:
+                        await emit_log_update(f"Processando produto {i}/{len(urls)} de {categoria['nome']}")
+                        # Extrai a URL do dicionário
+                        url = url_info['url']
+                        scraper_instance.extrair_dados_nutricionais(url)
+                        
+                    except Exception as e:
+                        await emit_log_update(f"Erro ao processar produto: {str(e)}", "error")
+                        continue
+                
+            except Exception as e:
+                await emit_log_update(f"Erro ao processar categoria {categoria['nome']}: {str(e)}", "error")
+                continue
+        
+        if coleta_ativa:
+            await emit_log_update("Coleta finalizada com sucesso", "success")
+        
     except Exception as e:
-        logging.error(f"Erro durante a coleta: {str(e)}")
         await emit_log_update(f"Erro durante a coleta: {str(e)}", "error")
-        raise HTTPException(status_code=500, detail=str(e))
+    
+    finally:
+        coleta_ativa = False
+        if scraper_instance:
+            scraper_instance.fechar_driver()
+            scraper_instance = None
 
 @app.get("/download-excel")
 async def download_excel():
@@ -507,7 +568,7 @@ async def download_excel():
         )
     
     except Exception as e:
-        logging.error(f"Erro ao gerar arquivo Excel: {str(e)}")
+        logger.error(f"Erro ao gerar arquivo Excel: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # Eventos do Socket.IO

@@ -1467,3 +1467,53 @@ select::-ms-expand {
 .log-content::-webkit-scrollbar-thumb:hover {
     background: var(--pink-dark);
 }
+
+/* Botões de ação */
+.button-group {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    align-items: center;
+}
+
+.btn--danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+}
+
+.btn--danger:hover {
+    background-color: #c82333;
+}
+
+.btn--danger i {
+    font-size: 1rem;
+}
+
+/* Estilos para quando o botão estiver visível */
+#cancelar-btn[style*="display: inline-block"] {
+    display: flex !important;
+}
+
+/* Mensagens de log */
+.log-entry.warning {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    border-radius: 4px;
+}
+
+/* Estado desabilitado */
+select:disabled {
+    background-color: #e9ecef;
+    cursor: not-allowed;
+}

@@ -8,20 +8,11 @@ import pandas as pd
 from datetime import datetime
 import platform
 from browser_config import configurar_driver
-import logging
+from scraping_log import logger
 import re
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import json
-
-# Configuração do logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
-)
-
-logger = logging.getLogger(__name__)
 
 def scroll_ate_o_fim(driver, max_scrolls=None):
     """
@@ -31,30 +22,31 @@ def scroll_ate_o_fim(driver, max_scrolls=None):
     last_height = driver.execute_script("return document.body.scrollHeight")
     num_scrolls = 0
     num_tentativas_mesma_altura = 0
-    max_tentativas_mesma_altura = 3  # Reduzido para 3 tentativas
+    max_tentativas_mesma_altura = 5  # Aumentado para 5 tentativas
     produtos_antes = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
     
     while True:
         # Se atingiu o número máximo de scrolls, para
         if max_scrolls and num_scrolls >= max_scrolls:
-            logging.info("Número máximo de scrolls atingido")
+            logger.info("Número máximo de scrolls atingido")
             return True
             
         # Rola até o fim da página
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         
         # Espera o carregamento com tempo maior
-        time.sleep(3)  # Reduzido para 3 segundos
+        time.sleep(5)  # Aumentado para 5 segundos
         
         # Tenta esperar pelo carregamento de novos produtos
         try:
-            WebDriverWait(driver, 10).until(
+            WebDriverWait(driver, 15).until(  # Aumentado para 15 segundos
                 lambda d: len(d.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']")) > produtos_antes
             )
             produtos_antes = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
             num_tentativas_mesma_altura = 0  # Reseta o contador se encontrou novos produtos
+            logger.info(f"Encontrados {produtos_antes} produtos após scroll")
         except:
-            logging.warning("Timeout esperando novos produtos carregarem")
+            logger.warning("Timeout esperando novos produtos carregarem")
         
         # Calcula a nova altura
         new_height = driver.execute_script("return document.body.scrollHeight")
@@ -64,20 +56,35 @@ def scroll_ate_o_fim(driver, max_scrolls=None):
             num_tentativas_mesma_altura += 1
             if num_tentativas_mesma_altura >= max_tentativas_mesma_altura:
                 # Tenta mais um scroll pequeno para garantir
-                driver.execute_script("window.scrollBy(0, 300);")  # Aumentado para 300px
-                time.sleep(2)
+                driver.execute_script("window.scrollBy(0, 500);")  # Aumentado para 500px
+                time.sleep(3)  # Aumentado para 3 segundos
                 final_height = driver.execute_script("return document.body.scrollHeight")
                 if final_height == new_height:
-                    logging.info("Fim da página detectado - altura não mudou após várias tentativas")
+                    logger.info("Fim da página detectado - altura não mudou após várias tentativas")
                     return False
             else:
-                num_tentativas_mesma_altura = 0
+                # Tenta rolar um pouco mais para cima e depois para baixo
+                driver.execute_script("window.scrollBy(0, -300);")  # Rola para cima
+                time.sleep(1)
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")  # Rola para baixo
+                time.sleep(2)
+                num_tentativas_mesma_altura = 0  # Reseta o contador para dar mais chances
         else:
             num_tentativas_mesma_altura = 0
         
         last_height = new_height
         num_scrolls += 1
-        logging.info(f"Rolando a página... (scroll {num_scrolls} - {produtos_antes} produtos encontrados)")
+        logger.info(f"Rolando a página... (scroll {num_scrolls} - {produtos_antes} produtos encontrados)")
+        
+        # Verifica se há um botão "Carregar mais" e clica nele
+        try:
+            botao_carregar = driver.find_element(By.CSS_SELECTOR, "button[class*='load-more']")
+            if botao_carregar.is_displayed():
+                botao_carregar.click()
+                time.sleep(3)  # Espera o carregamento após clicar
+                logger.info("Clicou no botão 'Carregar mais'")
+        except:
+            pass
 
 def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
     """
@@ -113,7 +120,6 @@ def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
         
         cards = None
         for selector in selectors:
-            logging.debug(f"Tentando seletor: {selector}")
             logger.debug(f"Tentando seletor: {selector}")
             cards = driver.find_elements(By.CSS_SELECTOR, selector)
             if cards:
@@ -175,7 +181,7 @@ def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
                     produtos_novos = True
                     logger.debug(f"Produto encontrado: {nome} - {url}")
                 
-                # Se atingiu o número máximo de URLs, para
+                # Se atingiu o número máximo de URLs e está no modo teste, para
                 if max_urls and len(produtos_info) >= max_urls:
                     logger.info(f"Número máximo de URLs atingido ({max_urls})")
                     break
@@ -269,197 +275,131 @@ def coletar_urls_categoria(url_categoria, categoria_nome, max_paginas=None, max_
     return todas_urls
 
 class URLCollector:
-    def __init__(self, modo_teste=False):
-        """
-        Inicializa o coletor de URLs.
-        
-        Args:
-            modo_teste (bool): Se True, limita a quantidade de URLs coletadas
-        """
-        self.modo_teste = modo_teste
-        
-        # Configurações para o modo de teste
-        self.max_urls_teste = 20  # Limite de URLs por categoria no modo teste
-        self.max_paginas_teste = 5  # Reduzido pois agora precisamos de menos produtos
-        self.max_scrolls_teste = 10  # Reduzido pois agora precisamos de menos produtos
-        
-        # Seletores CSS para elementos da página
-        self.seletores = {
-            'produtos': "div[data-testid='product-card'], a[href*='/produto/']",
-            'nome': "h2[class*='product-card__title'], h2[class*='ProductCard__title'], span[class*='product-name']"
-        }
+    def __init__(self):
+        """Inicializa o coletor de URLs."""
+        self.driver = None
         
     def inicializar_driver(self):
-        """
-        Inicializa e configura o driver do Selenium.
-        
-        Returns:
-            webdriver: Driver configurado do Selenium
-        """
-        return configurar_driver()
-
-    def scroll_pagina(self, driver):
-        """
-        Rola a página para baixo e aguarda o carregamento de novos produtos.
-        
-        Returns:
-            bool: True se novos produtos foram carregados, False caso contrário
-        """
-        produtos_antes = len(driver.find_elements(By.CSS_SELECTOR, self.seletores['produtos']))
-        last_height = driver.execute_script("return document.body.scrollHeight")
-        
-        # Rola até o fim da página
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        time.sleep(2)  # Espera inicial
-        
-        # Tenta rolar um pouco mais para garantir
-        driver.execute_script("window.scrollBy(0, 500);")
-        time.sleep(1)
-
-        # Aguarda até 15 segundos por novos produtos
+        """Inicializa o driver do navegador."""
         try:
-            WebDriverWait(driver, 15).until(
-                lambda d: len(d.find_elements(By.CSS_SELECTOR, self.seletores['produtos'])) > produtos_antes
-            )
-            return True
-        except:
-            # Se não encontrou novos produtos, verifica se a altura mudou
-            new_height = driver.execute_script("return document.body.scrollHeight")
-            if new_height != last_height:
-                # Se a altura mudou mas não encontrou produtos, dá mais uma chance
-                time.sleep(2)
-                produtos_depois = len(driver.find_elements(By.CSS_SELECTOR, self.seletores['produtos']))
-                return produtos_depois > produtos_antes
+            self.driver = configurar_driver()
+            if not self.driver:
+                raise Exception("Falha ao configurar o driver")
+            return self.driver
+        except Exception as e:
+            logger.error(f"Erro ao inicializar driver: {str(e)}")
+            return None
+        
+    def scroll_pagina(self, driver):
+        """Rola a página para baixo para carregar mais produtos."""
+        try:
+            # Rola até o fim da página
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(2)  # Espera o carregamento
             
-            # Tenta um último scroll pequeno para garantir
-            driver.execute_script("window.scrollBy(0, 300);")
-            time.sleep(2)
-            final_height = driver.execute_script("return document.body.scrollHeight")
-            produtos_final = len(driver.find_elements(By.CSS_SELECTOR, self.seletores['produtos']))
+            # Verifica se há um botão "Carregar mais" e clica nele
+            try:
+                botao_carregar = driver.find_element(By.CSS_SELECTOR, "button[class*='load-more']")
+                if botao_carregar.is_displayed():
+                    botao_carregar.click()
+                    time.sleep(2)  # Espera o carregamento após clicar
+            except:
+                pass
+                
+        except Exception as e:
+            logger.error(f"Erro ao rolar página: {str(e)}")
             
-            return final_height != last_height or produtos_final > produtos_antes
-
-    def coletar_urls(self, url_categoria):
+    def coletar_urls(self, url_categoria, modo_teste=False):
         """
         Coleta URLs dos produtos de uma categoria.
         
         Args:
-            url_categoria (str): URL da categoria para coletar
+            url_categoria: URL da categoria para coletar
+            modo_teste: Se True, limita a coleta a poucos produtos para teste
             
         Returns:
-            list: Lista de dicionários com informações dos produtos
+            list: Lista de URLs coletadas
         """
+        driver = None
         try:
-            # Configura e abre o navegador
+            # Inicializa o driver
             driver = self.inicializar_driver()
+            if not driver:
+                raise Exception("Falha ao inicializar o driver")
             
-            # Acessa a URL da categoria
-            logging.info(f"Acessando categoria: {url_categoria}")
+            logger.info(f"Acessando categoria: {url_categoria}")
             driver.get(url_categoria)
             time.sleep(5)  # Espera o carregamento inicial
             
-            # Lista para armazenar as URLs
-            urls_produtos = []
-            urls_ja_coletadas = set()
-            num_scrolls = 0
-            sem_novos_produtos = 0
-            max_tentativas_sem_novos = 3
+            # Define limites baseado no modo
+            max_scrolls = 2 if modo_teste else None
+            max_urls = 5 if modo_teste else None  # None significa sem limite
             
+            # Coleta as URLs
+            todas_urls = []
+            urls_ja_coletadas = set()
+            
+            # Rola a página até o fim ou até atingir o limite
             while True:
-                # Coleta os links dos produtos visíveis
-                elementos_produtos = driver.find_elements(By.CSS_SELECTOR, self.seletores['produtos'])
-                produtos_antes = len(urls_ja_coletadas)
+                # Rola a página para carregar mais produtos
+                tem_mais_conteudo = scroll_ate_o_fim(driver, max_scrolls)
                 
-                logging.info(f"Encontrados {len(elementos_produtos)} produtos na página atual")
+                # Extrai URLs da página atual
+                urls_pagina, encontrou_novos = extrair_urls_produtos(
+                    driver,
+                    max_urls=max_urls,
+                    urls_ja_coletadas=urls_ja_coletadas
+                )
                 
-                for elemento in elementos_produtos:
-                    try:
-                        url = elemento.get_attribute('href')
-                        if not url or url in urls_ja_coletadas:
-                            continue
-                            
-                        # Tenta diferentes maneiras de obter o nome
-                        nome = None
-                        for seletor in self.seletores['nome'].split(', '):
-                            try:
-                                nome_element = elemento.find_element(By.CSS_SELECTOR, seletor)
-                                nome = nome_element.text.strip()
-                                if nome:
-                                    break
-                            except:
-                                continue
-                        
-                        # Se não encontrou o nome pelos seletores, tenta extrair da URL
-                        if not nome and url:
-                            nome = url.split('/')[-1].replace('-', ' ').title()
-                        
-                        if url and nome:
-                            # Log detalhado para cada URL coletada
-                            logging.info(f"Coletando URL ({len(urls_produtos) + 1}): {url}")
-                            
-                            urls_produtos.append({
-                                'url': url,
-                                'nome': nome
-                            })
-                            urls_ja_coletadas.add(url)
-                            
-                            # Se estiver no modo teste e atingiu o limite, para
-                            if self.modo_teste and len(urls_produtos) >= self.max_urls_teste:
-                                logging.info(f"Limite de URLs no modo teste atingido ({self.max_urls_teste})")
-                                driver.quit()
-                                return urls_produtos
-                                
-                    except Exception as e:
-                        logging.error(f"Erro ao coletar URL do produto: {str(e)}")
-                        continue
+                todas_urls.extend(urls_pagina)
                 
-                # Verifica se novos produtos foram coletados neste ciclo
-                produtos_depois = len(urls_ja_coletadas)
-                if produtos_depois > produtos_antes:
-                    sem_novos_produtos = 0
-                else:
-                    sem_novos_produtos += 1
-                    if sem_novos_produtos >= max_tentativas_sem_novos:
-                        logging.info("Nenhum novo produto encontrado após várias tentativas")
-                        break
-                
-                # Controle de scrolls no modo teste
-                num_scrolls += 1
-                if self.modo_teste and num_scrolls >= self.max_scrolls_teste:
-                    logging.info(f"Limite de scrolls no modo teste atingido ({self.max_scrolls_teste})")
+                # Se está no modo teste e já tem URLs suficientes, para
+                if modo_teste and len(todas_urls) >= 5:  # Número fixo para modo teste
+                    logger.info("Modo teste: limite de 5 URLs atingido")
                     break
-                
-                # Tenta rolar a página
-                if not self.scroll_pagina(driver):
-                    logging.info("Fim da página detectado - não há mais conteúdo para carregar")
+                    
+                # Se não encontrou produtos novos e não tem mais conteúdo para carregar, chegamos ao fim
+                if not encontrou_novos and not tem_mais_conteudo:
+                    logger.info("Fim da página atingido - não há mais produtos para coletar")
                     break
-                
-            logging.info(f"Total de URLs coletadas: {len(urls_produtos)}")
-            return urls_produtos
+                    
+                # Se não encontrou produtos novos mas ainda tem conteúdo, continua rolando
+                if not encontrou_novos:
+                    logger.info("Nenhum produto novo encontrado, mas ainda há conteúdo para carregar")
+                    continue
+                    
+            logger.info(f"Total de URLs coletadas: {len(todas_urls)}")
+            return todas_urls
             
         except Exception as e:
-            logging.error(f"Erro ao coletar URLs: {str(e)}")
+            logger.error(f"Erro ao coletar URLs: {str(e)}")
             return []
             
         finally:
-            driver.quit()
-
+            if driver:
+                try:
+                    driver.quit()
+                except Exception as e:
+                    logger.error(f"Erro ao fechar o driver: {str(e)}")
+                driver = None
+    
     def salvar_urls_csv(self, urls, nome_arquivo=None):
-        """
-        Salva as URLs coletadas em um arquivo CSV.
-        
-        Args:
-            urls (list): Lista de dicionários contendo as URLs
-            nome_arquivo (str, optional): Nome do arquivo CSV para salvar. Se None, usa o nome padrão.
-        """
+        """Salva as URLs coletadas em um arquivo CSV."""
         try:
-            nome_arquivo = nome_arquivo or "urls_coletadas.csv"
+            if not urls:
+                logger.warning("Nenhuma URL para salvar")
+                return
+                
+            if not nome_arquivo:
+                nome_arquivo = f"urls_produtos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                
+            # Cria DataFrame e salva
             df = pd.DataFrame(urls)
             df.to_csv(nome_arquivo, index=False)
-            logger.info(f"URLs salvas com sucesso em {nome_arquivo}")
+            logger.info(f"URLs salvas em: {nome_arquivo}")
+            
         except Exception as e:
-            logger.error(f"Erro ao salvar URLs em CSV: {str(e)}")
-            raise
+            logger.error(f"Erro ao salvar URLs: {str(e)}")
 
 if __name__ == "__main__":
     logger.info("Este arquivo não deve ser executado diretamente. Use o api.py") 
