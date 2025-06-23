@@ -462,4 +462,4 @@ class URLCollector:
             raise
 
 if __name__ == "__main__":
-    logger.info("Este arquivo não deve ser executado diretamente. Use o main.py") 
+    logger.info("Este arquivo não deve ser executado diretamente. Use o api.py") 
