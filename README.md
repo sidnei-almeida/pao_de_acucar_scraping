@@ -97,4 +97,3 @@ Para dúvidas, sugestões ou reportar problemas, entre em contato com o desenvol
 - GitHub: [sidnei-almeida](https://github.com/sidnei-almeida)
 
 ---
-Desenvolvido por Sidnei Almeida
