@@ -6,13 +6,13 @@
 
 ## 📝 Descrição
 
-O Pão de Açúcar Scraping é uma aplicação web desenvolvida por para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza Selenium para navegar pelo site e extrair informações detalhadas sobre os produtos, apresentando uma interface web amigável para controle e visualização dos dados.
+O Pão de Açúcar Scraping é uma aplicação web desenvolvida para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza Selenium para navegar pelo site e extrair informações detalhadas sobre os produtos, apresentando uma interface web amigável para controle e visualização dos dados.
 
 ## 🚀 Como Usar
 
 ### 1. Requisitos do Sistema
 
-- Python 3.8 ou superior
+- Python 3.11 ou superior
 - Google Chrome ou Chromium
 - Conexão com a Internet
 
@@ -81,10 +81,10 @@ Para cada produto, são coletadas as seguintes informações:
 
 ## ⚠️ Observações Importantes
 
-- A coleta pode levar alguns minutos dependendo da quantidade de produtos
+- A coleta pode levar algumas horas dependendo da quantidade de produtos
 - Mantenha a janela do navegador aberta durante a coleta
 - Uma conexão estável com a internet é necessária
-- Os dados são salvos automaticamente em formato CSV
+- Os dados são salvos automaticamente em formato CSV na pasta do repositório
 - É possível cancelar a coleta a qualquer momento
 
 ## 📞 Contato
