@@ -246,10 +246,7 @@ class Scraper:
                     # Lê o CSV existente
                     df_existente = pd.read_csv('dados_nutricionais.csv')
                     
-                    # Remove registros duplicados baseados na URL
-                    df_existente = df_existente[df_existente['URL'] != resultado['url']]
-                    
-                    # Concatena com dados existentes
+                    # Apenas adiciona o novo registro (não substitui)
                     df_final = pd.concat([df_existente, df_novo], ignore_index=True)
                 else:
                     df_final = df_novo

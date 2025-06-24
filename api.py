@@ -514,6 +514,13 @@ async def realizar_coleta(modo: str, categorias: List[str]):
     global coleta_ativa, scraper_instance
     
     try:
+        # Carrega URLs já coletadas do CSV existente
+        urls_ja_coletadas = set()
+        if os.path.exists('dados_nutricionais.csv'):
+            df_existente = pd.read_csv('dados_nutricionais.csv')
+            urls_ja_coletadas = set(df_existente['URL'])
+            await emit_log_update(f"Encontrados {len(urls_ja_coletadas)} produtos já coletados anteriormente")
+        
         # Obtém as URLs das categorias
         todas_categorias = (await listar_categorias())["categorias"]
         # Converte os IDs para string para garantir a comparação correta
@@ -545,18 +552,24 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                         scraper_instance.cancelar()
                     break
                 
-                await emit_log_update(f"Encontrados {len(urls)} produtos em {categoria['nome']}")
-                todas_urls.extend(urls)
+                # Filtra apenas URLs que ainda não foram coletadas
+                urls_novas = [url for url in urls if url['url'] not in urls_ja_coletadas]
+                await emit_log_update(f"Encontrados {len(urls)} produtos em {categoria['nome']}, sendo {len(urls_novas)} novos")
+                todas_urls.extend(urls_novas)
                 
             except Exception as e:
                 await emit_log_update(f"Erro ao coletar URLs da categoria {categoria['nome']}: {str(e)}", "error")
                 continue
         
-        # Depois coleta os dados nutricionais de todas as URLs
+        # Depois coleta os dados nutricionais apenas das URLs novas
         total_urls = len(todas_urls)
-        await emit_log_update(f"Total de URLs coletadas de todas as categorias: {total_urls}")
+        await emit_log_update(f"Total de URLs novas para coletar: {total_urls}")
         
-        # Processa cada URL
+        if total_urls == 0:
+            await emit_log_update("✅ Não há novos produtos para coletar!", "success")
+            return
+        
+        # Processa cada URL nova
         for i, url_info in enumerate(todas_urls, 1):
             if not coleta_ativa:
                 if scraper_instance:
@@ -564,15 +577,23 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                 break
                 
             try:
-                await emit_log_update(f"Processando produto {i}/{total_urls}")
+                await emit_log_update(f"Processando novo produto {i}/{total_urls}")
                 # Extrai a URL do dicionário
                 url = url_info['url']
+                
+                # Verifica novamente se a URL já não foi coletada (dupla verificação)
+                if url in urls_ja_coletadas:
+                    await emit_log_update(f"Produto {i}/{total_urls} já foi coletado anteriormente, pulando...", "info")
+                    continue
+                
                 resultado = scraper_instance.extrair_dados_nutricionais(url)
                 
                 if resultado:
-                    await emit_log_update(f"✅ Produto {i}/{total_urls} coletado com sucesso", "success")
+                    # Adiciona a URL ao conjunto de URLs já coletadas
+                    urls_ja_coletadas.add(url)
+                    await emit_log_update(f"✅ Novo produto {i}/{total_urls} coletado com sucesso", "success")
                 else:
-                    await emit_log_update(f"❌ Falha ao coletar produto {i}/{total_urls}", "error")
+                    await emit_log_update(f"❌ Falha ao coletar novo produto {i}/{total_urls}", "error")
                 
             except Exception as e:
                 await emit_log_update(f"Erro ao processar produto: {str(e)}", "error")
