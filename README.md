@@ -6,7 +6,7 @@
 
 ## 📝 Descrição
 
-O Pão de Açúcar Scraping é uma aplicação web desenvolvida por Sidnei Almeida para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza Selenium para navegar pelo site e extrair informações detalhadas sobre os produtos, apresentando uma interface web amigável para controle e visualização dos dados.
+O Pão de Açúcar Scraping é uma aplicação web desenvolvida por para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza Selenium para navegar pelo site e extrair informações detalhadas sobre os produtos, apresentando uma interface web amigável para controle e visualização dos dados.
 
 ## 🚀 Como Usar
 
@@ -97,4 +97,3 @@ Para dúvidas, sugestões ou reportar problemas, entre em contato com o desenvol
 - GitHub: [sidnei-almeida](https://github.com/sidnei-almeida)
 
 ---
-Desenvolvido por Sidnei Almeida
