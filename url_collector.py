@@ -328,6 +328,9 @@ class URLCollector:
                         categoria_nome = categoria_nome.replace('-', ' ').replace('_', ' ').title()
                     elif '/categoria/' in url_categoria:
                         categoria_nome = url_categoria.split('/categoria/')[-1].split('?')[0].split('#')[0]
+                        # Remove o prefixo "alimentos/" se presente
+                        if categoria_nome.lower().startswith('alimentos/'):
+                            categoria_nome = categoria_nome[10:]  # Remove "alimentos/" (10 caracteres)
                         categoria_nome = categoria_nome.replace('-', ' ').replace('_', ' ').title()
                     else:
                         # Se não conseguir extrair, usa um padrão genérico

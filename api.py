@@ -793,49 +793,36 @@ async def download_excel():
     """
     Baixa os dados nutricionais em formato Excel
     """
-    # TODO: Implementar lógica para ler os dados do arquivo/banco
-    # Por enquanto, vamos criar um DataFrame de exemplo
-    dados = []
+    try:
+        # Verificar se existe arquivo de dados
+        if not os.path.exists("dados_nutricionais.csv"):
+            raise HTTPException(status_code=404, detail="Nenhum dado nutricional disponível")
+        
+        # Lê o arquivo CSV
+        df = pd.read_csv("dados_nutricionais.csv")
+        
+        if df.empty:
+            raise HTTPException(status_code=404, detail="Nenhum dado nutricional disponível")
+        
+        # Criar arquivo Excel em memória
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, sheet_name='Dados Nutricionais', index=False)
+        
+        output.seek(0)
+        
+        # Retornar o arquivo como resposta de streaming
+        return StreamingResponse(
+            io.BytesIO(output.read()),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=dados_nutricionais.xlsx"}
+        )
     
-    # Verificar se existe arquivo de dados
-    if os.path.exists("dados_nutricionais.csv"):
-        try:
-            df = pd.read_csv("dados_nutricionais.csv")
-            dados = df.to_dict('records')
-        except Exception as e:
-            logger.error(f"Erro ao ler dados do arquivo CSV: {e}")
-    
-    if not dados:
-        dados = [{
-            "nome": "Exemplo - Produto não encontrado",
-            "categoria": "Nenhuma",
-            "porcao": 100,
-            "calorias": 0,
-            "carboidratos": 0,
-            "proteinas": 0,
-            "gorduras": 0,
-            "gorduras_saturadas": 0,
-            "fibras": 0,
-            "acucares": 0,
-            "sodio": 0,
-            "data_coleta": datetime.now().strftime("%Y-%m-%d")
-        }]
-    
-    df = pd.DataFrame(dados)
-    
-    # Criar arquivo Excel em memória
-    output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, sheet_name='Dados Nutricionais', index=False)
-    
-    output.seek(0)
-    
-    # Retornar o arquivo como resposta de streaming
-    return StreamingResponse(
-        io.BytesIO(output.read()),
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=dados_nutricionais.xlsx"}
-    )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao gerar arquivo Excel: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar arquivo Excel: {str(e)}")
 
 # Endpoints com prefixo /api/ para compatibilidade com o frontend
 @app.get("/api/categorias")
@@ -981,7 +968,42 @@ async def api_download_excel(
     """
     Baixa os dados nutricionais em formato Excel (API endpoint)
     """
-    return await download_excel()
+    try:
+        # Verificar se existe arquivo de dados
+        if not os.path.exists("dados_nutricionais.csv"):
+            raise HTTPException(status_code=404, detail="Nenhum dado nutricional disponível")
+        
+        # Lê o arquivo CSV
+        df = pd.read_csv("dados_nutricionais.csv")
+        
+        # Aplica filtros se fornecidos
+        if categoria:
+            df = df[df['categoria'].str.contains(categoria, case=False, na=False)]
+        if search:
+            df = df[df['nome'].str.contains(search, case=False, na=False)]
+        
+        if df.empty:
+            raise HTTPException(status_code=404, detail="Nenhum dado encontrado com os filtros aplicados")
+        
+        # Criar arquivo Excel em memória
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+            df.to_excel(writer, sheet_name='Dados Nutricionais', index=False)
+        
+        output.seek(0)
+        
+        # Retornar o arquivo como resposta de streaming
+        return StreamingResponse(
+            io.BytesIO(output.read()),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": "attachment; filename=dados_nutricionais.xlsx"}
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao gerar arquivo Excel: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro ao gerar arquivo Excel: {str(e)}")
 
 # Eventos do Socket.IO
 @sio.event
