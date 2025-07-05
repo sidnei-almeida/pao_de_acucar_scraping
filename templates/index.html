@@ -1,250 +1,291 @@
 {% extends "base.html" %}
 
-{% block title %}API de Dados Nutricionais{% endblock %}
-
-{% block styles %}
-<style>
-/* Hero Section */
-.hero {
-    text-align: center;
-    padding: 6rem 0;
-    background: linear-gradient(rgba(10, 10, 10, 0.8), rgba(10, 10, 10, 0.9)), url("{{ url_for('static', path='images/header.jpg') }}") center/cover;
-    border-radius: 1.5rem;
-    margin-bottom: 4rem;
-}
-
-.hero__title {
-    font-size: 3.6rem;
-    color: var(--white);
-    margin-bottom: 1.5rem;
-}
-
-.hero__description {
-    font-size: var(--font-size-medium);
-    color: var(--white-2);
-    max-width: 60rem;
-    margin: 0 auto 3rem;
-}
-
-/* Status Cards */
-.status-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(25rem, 1fr));
-    gap: 2rem;
-    margin-bottom: 4rem;
-}
-
-.status-card {
-    background: var(--dark-gray);
-    padding: 2rem;
-    border-radius: 1rem;
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.status-card:hover {
-    transform: translateY(-5px);
-}
-
-.status-card__icon {
-    font-size: 2.4rem;
-    color: var(--pink);
-    margin-bottom: 1.5rem;
-}
-
-.status-card__value {
-    font-size: 2.8rem;
-    color: var(--white);
-    margin-bottom: 0.5rem;
-}
-
-.status-card__label {
-    font-size: var(--font-size-small);
-    color: var(--white-2);
-}
-
-/* Features Section */
-.features {
-    margin-bottom: 4rem;
-}
-
-.features__title {
-    font-size: var(--font-size-large);
-    color: var(--white);
-    text-align: center;
-    margin-bottom: 3rem;
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(30rem, 1fr));
-    gap: 3rem;
-}
-
-.feature-card {
-    background: var(--dark-gray);
-    padding: 3rem;
-    border-radius: 1rem;
-    text-align: center;
-    transition: all 0.3s ease;
-}
-
-.feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.feature-card__icon {
-    font-size: 3rem;
-    color: var(--pink);
-    margin-bottom: 2rem;
-}
-
-.feature-card__title {
-    font-size: var(--font-size-medium);
-    color: var(--white);
-    margin-bottom: 1.5rem;
-}
-
-.feature-card__description {
-    font-size: var(--font-size-small);
-    color: var(--white-2);
-    line-height: 1.6;
-}
-
-.feature-card__link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.8rem;
-    margin-top: 2rem;
-    color: var(--pink);
-    text-decoration: none;
-    font-size: var(--font-size-small);
-    transition: all 0.3s ease;
-}
-
-.feature-card__link:hover {
-    gap: 1.2rem;
-}
-
-/* Responsividade */
-@media (max-width: 768px) {
-    .hero {
-        padding: 4rem 2rem;
-    }
-
-    .hero__title {
-        font-size: 2.8rem;
-    }
-
-    .status-grid {
-        grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-    }
-
-    .features-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-{% endblock %}
+{% block title %}API de Dados Nutricionais - Início{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
 <section class="hero">
     <h1 class="hero__title">API de Dados Nutricionais</h1>
-    <p class="hero__description">
-        Colete e consulte dados nutricionais de produtos do Pão de Açúcar de forma rápida e eficiente.
-        Uma solução completa para análise de informações nutricionais.
+    <p class="hero__subtitle">
+        Colete e consulte dados nutricionais de produtos do Pão de Açúcar 
+        de forma rápida, eficiente e automatizada.
     </p>
     <div class="hero__actions">
         <a href="{{ url_for('pagina_coletar') }}" class="btn btn--primary">
-            <i class="fas fa-play"></i>
+            <i class="fas fa-robot"></i>
             Iniciar Coleta
         </a>
-        <a href="{{ url_for('pagina_consultar') }}" class="btn btn--secondary">
+        <a href="{{ url_for('pagina_consultar') }}" class="btn btn--outline">
             <i class="fas fa-search"></i>
             Consultar Dados
         </a>
     </div>
 </section>
 
-<!-- Status Cards -->
-<section class="status-grid">
-    <div class="status-card">
-        <i class="fas fa-database status-card__icon"></i>
-        <div class="status-card__value">{{ metricas.total_produtos }}</div>
-        <div class="status-card__label">Produtos Coletados</div>
-    </div>
-    <div class="status-card">
-        <i class="fas fa-tags status-card__icon"></i>
-        <div class="status-card__value">{{ metricas.total_categorias }}</div>
-        <div class="status-card__label">Categorias</div>
-    </div>
-    <div class="status-card">
-        <i class="fas fa-clock status-card__icon"></i>
-        <div class="status-card__value">{{ metricas.ultima_atualizacao }}</div>
-        <div class="status-card__label">Última Atualização</div>
+<!-- Métricas -->
+<section class="section">
+    <div class="grid grid--3">
+        <div class="card text-center">
+            <div class="card__icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <h3 class="card__title">{{ metricas.total_produtos or 0 }}</h3>
+            <p class="card__description">Produtos Coletados</p>
+        </div>
+        <div class="card text-center">
+            <div class="card__icon">
+                <i class="fas fa-tags"></i>
+            </div>
+            <h3 class="card__title">{{ metricas.total_categorias or 0 }}</h3>
+            <p class="card__description">Categorias Disponíveis</p>
+        </div>
+        <div class="card text-center">
+            <div class="card__icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 class="card__title">{{ metricas.ultima_atualizacao or 'Nunca' }}</h3>
+            <p class="card__description">Última Atualização</p>
+        </div>
     </div>
 </section>
 
 <!-- Features Section -->
-<section class="features">
-    <h2 class="features__title">Funcionalidades</h2>
-    <div class="features-grid">
-        <div class="feature-card">
-            <i class="fas fa-robot feature-card__icon"></i>
-            <h3 class="feature-card__title">Coleta Automatizada</h3>
-            <p class="feature-card__description">
-                Colete dados nutricionais automaticamente de múltiplos produtos simultaneamente.
-                Suporte a diferentes categorias e modos de coleta.
-            </p>
-            <a href="{{ url_for('pagina_coletar') }}" class="feature-card__link">
-                Iniciar Coleta <i class="fas fa-arrow-right"></i>
-            </a>
+<section class="section">
+    <h2 class="text-center mb-xl">Funcionalidades</h2>
+    <div class="grid grid--auto">
+        <div class="card">
+            <div class="card__header">
+                <div class="card__icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 class="card__title">Coleta Automatizada</h3>
+                <p class="card__description">
+                    Sistema inteligente que coleta dados nutricionais automaticamente, 
+                    com suporte a múltiplas categorias e modo de teste.
+                </p>
+            </div>
+            <div class="card__content">
+                <ul class="list-unstyled">
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Coleta em tempo real
+                    </li>
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Múltiplas categorias
+                    </li>
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Logs detalhados
+                    </li>
+                </ul>
+            </div>
+            <div class="card__footer">
+                <a href="{{ url_for('pagina_coletar') }}" class="btn btn--primary">
+                    <i class="fas fa-play"></i>
+                    Começar Coleta
+                </a>
+            </div>
         </div>
-        <div class="feature-card">
-            <i class="fas fa-search feature-card__icon"></i>
-            <h3 class="feature-card__title">Consulta Avançada</h3>
-            <p class="feature-card__description">
-                Pesquise e filtre produtos por categoria, nome ou valores nutricionais.
-                Visualize dados em formato tabular com opções de exportação.
-            </p>
-            <a href="{{ url_for('pagina_consultar') }}" class="feature-card__link">
-                Consultar Dados <i class="fas fa-arrow-right"></i>
-            </a>
+
+        <div class="card">
+            <div class="card__header">
+                <div class="card__icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3 class="card__title">Consulta Avançada</h3>
+                <p class="card__description">
+                    Pesquise e filtre produtos por categoria, nome ou valores nutricionais
+                    com interface intuitiva e exportação de dados.
+                </p>
+            </div>
+            <div class="card__content">
+                <ul class="list-unstyled">
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Busca inteligente
+                    </li>
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Filtros avançados
+                    </li>
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Exportação Excel
+                    </li>
+                </ul>
+            </div>
+            <div class="card__footer">
+                <a href="{{ url_for('pagina_consultar') }}" class="btn btn--primary">
+                    <i class="fas fa-search"></i>
+                    Consultar Dados
+                </a>
+            </div>
         </div>
-        <div class="feature-card">
-            <i class="fas fa-code feature-card__icon"></i>
-            <h3 class="feature-card__title">API REST</h3>
-            <p class="feature-card__description">
-                Acesse os dados através de uma API REST documentada e fácil de usar.
-                Integre com suas próprias aplicações.
+
+        <div class="card">
+            <div class="card__header">
+                <div class="card__icon">
+                    <i class="fas fa-code"></i>
+                </div>
+                <h3 class="card__title">API REST</h3>
+                <p class="card__description">
+                    Acesse todos os dados através de uma API REST documentada
+                    e fácil de integrar em suas aplicações.
+                </p>
+            </div>
+            <div class="card__content">
+                <ul class="list-unstyled">
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Documentação completa
+                    </li>
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Endpoints RESTful
+                    </li>
+                    <li class="mb-sm">
+                        <i class="fas fa-check text-success"></i>
+                        Formato JSON
+                    </li>
+                </ul>
+            </div>
+            <div class="card__footer">
+                <a href="/docs" class="btn btn--primary">
+                    <i class="fas fa-book"></i>
+                    Ver Documentação
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Status Section -->
+<section class="section">
+    <div class="card">
+        <div class="card__header text-center">
+            <h2 class="card__title">Sistema Operacional</h2>
+            <p class="card__description">
+                O sistema está funcionando perfeitamente e pronto para uso.
+                Monitore o status em tempo real.
             </p>
-            <a href="/docs" class="feature-card__link">
-                Ver Documentação <i class="fas fa-arrow-right"></i>
-            </a>
+        </div>
+        <div class="card__content">
+            <div class="grid grid--4">
+                <div class="text-center">
+                    <div class="text-success mb-sm">
+                        <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="text-primary">API Online</h4>
+                    <p class="text-secondary">Sistema operacional</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-success mb-sm">
+                        <i class="fas fa-database" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="text-primary">Banco de Dados</h4>
+                    <p class="text-secondary">Conectado</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-success mb-sm">
+                        <i class="fas fa-cloud" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="text-primary">Servidor</h4>
+                    <p class="text-secondary">Estável</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-success mb-sm">
+                        <i class="fas fa-shield-alt" style="font-size: 2rem;"></i>
+                    </div>
+                    <h4 class="text-primary">Segurança</h4>
+                    <p class="text-secondary">Protegido</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section">
+    <div class="card text-center">
+        <div class="card__header">
+            <h2 class="card__title">Pronto para Começar?</h2>
+            <p class="card__description">
+                Escolha uma das opções abaixo para começar a usar a API de Dados Nutricionais.
+            </p>
+        </div>
+        <div class="card__content">
+            <div class="d-flex justify-center gap-lg">
+                <a href="{{ url_for('pagina_coletar') }}" class="btn btn--primary">
+                    <i class="fas fa-robot"></i>
+                    Começar Coleta
+                </a>
+                <a href="{{ url_for('pagina_consultar') }}" class="btn btn--outline">
+                    <i class="fas fa-search"></i>
+                    Explorar Dados
+                </a>
+                <a href="/docs" class="btn btn--secondary">
+                    <i class="fas fa-book"></i>
+                    Documentação
+                </a>
+            </div>
         </div>
     </div>
 </section>
 {% endblock %}
 
+{% block styles %}
+<style>
+/* Estilos específicos para a página inicial */
+.list-unstyled {
+    list-style: none;
+    padding: 0;
+}
+
+.list-unstyled li {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.list-unstyled i {
+    font-size: var(--font-size-sm);
+}
+
+/* Ajustes para dispositivos móveis */
+@media (max-width: 768px) {
+    .hero__actions {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .hero__actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    // Scroll suave para links de navegação
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href');
-        const targetElement = document.querySelector(targetId);
-        if (targetElement) {
-          window.scrollTo({
-            top: targetElement.offsetTop,
-            behavior: 'smooth'
-          });
-        }
-      });
+document.addEventListener('DOMContentLoaded', function() {
+    // Animação suave para os cards
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
     });
-  });
+
+    document.querySelectorAll('.card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'all 0.6s ease';
+        observer.observe(card);
+    });
+});
 </script>
 {% endblock %} 

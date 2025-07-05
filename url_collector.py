@@ -299,13 +299,14 @@ class URLCollector:
         except Exception as e:
             logger.error(f"Erro ao rolar página: {str(e)}")
             
-    def coletar_urls(self, url_categoria, modo_teste=False):
+    def coletar_urls(self, url_categoria, modo_teste=False, categoria_nome=None):
         """
         Coleta URLs dos produtos de uma categoria.
         
         Args:
             url_categoria: URL da categoria para coletar
             modo_teste: Se True, limita a coleta a poucos produtos para teste
+            categoria_nome: Nome da categoria para adicionar aos produtos
             
         Returns:
             list: Lista de URLs coletadas
@@ -316,6 +317,23 @@ class URLCollector:
             driver = self.inicializar_driver()
             if not driver:
                 raise Exception("Falha ao inicializar o driver")
+            
+            # Usa o nome da categoria fornecido ou tenta extrair da URL
+            if not categoria_nome:
+                categoria_nome = 'Categoria não informada'
+                try:
+                    # Extrai o nome da categoria da URL
+                    if '/c/' in url_categoria:
+                        categoria_nome = url_categoria.split('/c/')[-1].split('?')[0].split('#')[0]
+                        categoria_nome = categoria_nome.replace('-', ' ').replace('_', ' ').title()
+                    elif '/categoria/' in url_categoria:
+                        categoria_nome = url_categoria.split('/categoria/')[-1].split('?')[0].split('#')[0]
+                        categoria_nome = categoria_nome.replace('-', ' ').replace('_', ' ').title()
+                    else:
+                        # Se não conseguir extrair, usa um padrão genérico
+                        categoria_nome = 'Categoria não informada'
+                except:
+                    categoria_nome = 'Categoria não informada'
             
             logger.info(f"Acessando categoria: {url_categoria}")
             driver.get(url_categoria)
@@ -338,6 +356,13 @@ class URLCollector:
                 max_urls=max_urls,
                 urls_ja_coletadas=urls_ja_coletadas
             )
+            
+            # Adiciona a categoria e outras informações aos produtos
+            for produto in urls_pagina:
+                produto.update({
+                    'categoria': categoria_nome,
+                    'data_coleta': datetime.now().isoformat()
+                })
             
             todas_urls.extend(urls_pagina)
             

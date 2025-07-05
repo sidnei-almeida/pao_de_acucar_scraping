@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 import io
 import asyncio
 from threading import Thread
+import webbrowser
+import time
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -376,10 +378,10 @@ async def listar_produtos(
         
         # Verifica se as colunas necessárias existem
         colunas_esperadas = [
-            'NOME_PRODUTO', 'URL', 'PORCAO (g)', 'CALORIAS (kcal)', 
-            'CARBOIDRATOS (g)', 'PROTEINAS (g)', 'GORDURAS_TOTAIS (g)',
-            'GORDURAS_SATURADAS (g)', 'FIBRAS (g)', 'ACUCARES (g)', 'SODIO (mg)',
-            'data_coleta'
+            'nome', 'url', 'porcao', 'calorias', 
+            'carboidratos', 'proteinas', 'gorduras',
+            'gorduras_saturadas', 'fibras', 'acucares', 'sodio',
+            'data_coleta', 'categoria'
         ]
         colunas_faltantes = [col for col in colunas_esperadas if col not in df.columns]
         if colunas_faltantes:
@@ -392,7 +394,27 @@ async def listar_produtos(
         if categoria:
             df = df[df['categoria'].str.contains(categoria, case=False, na=False)]
         if nome:
-            df = df[df['NOME_PRODUTO'].str.contains(nome, case=False, na=False)]
+            df = df[df['nome'].str.contains(nome, case=False, na=False)]
+        
+        # Ordena por data de coleta decrescente (mais recente primeiro)
+        try:
+            # Converte datas para datetime, lidando com formatos mistos
+            df['data_coleta_dt'] = pd.to_datetime(df['data_coleta'], format='mixed', errors='coerce')
+            # Se falhar, tenta formatos específicos
+            mask_na = df['data_coleta_dt'].isna()
+            if mask_na.any():
+                # Tenta formato apenas data
+                df.loc[mask_na, 'data_coleta_dt'] = pd.to_datetime(
+                    df.loc[mask_na, 'data_coleta'], 
+                    format='%Y-%m-%d', 
+                    errors='coerce'
+                )
+            
+            # Ordena por data decrescente
+            df = df.sort_values('data_coleta_dt', ascending=False, na_position='last')
+            df = df.drop('data_coleta_dt', axis=1)  # Remove coluna auxiliar
+        except Exception as e:
+            logger.warning(f"Erro ao ordenar por data: {e}. Mantendo ordem original.")
         
         # Aplica paginação
         total = len(df)
@@ -404,32 +426,32 @@ async def listar_produtos(
             try:
                 # Garante que os valores numéricos sejam float
                 valores_numericos = {
-                    'PORCAO (g)': float(row['PORCAO (g)']),
-                    'CALORIAS (kcal)': float(row['CALORIAS (kcal)']),
-                    'CARBOIDRATOS (g)': float(row['CARBOIDRATOS (g)']),
-                    'PROTEINAS (g)': float(row['PROTEINAS (g)']),
-                    'GORDURAS_TOTAIS (g)': float(row['GORDURAS_TOTAIS (g)']),
-                    'GORDURAS_SATURADAS (g)': float(row['GORDURAS_SATURADAS (g)']),
-                    'FIBRAS (g)': float(row['FIBRAS (g)']),
-                    'ACUCARES (g)': float(row['ACUCARES (g)']),
-                    'SODIO (mg)': float(row['SODIO (mg)'])
+                    'porcao': float(row['porcao']),
+                    'calorias': float(row['calorias']),
+                    'carboidratos': float(row['carboidratos']),
+                    'proteinas': float(row['proteinas']),
+                    'gorduras': float(row['gorduras']),
+                    'gorduras_saturadas': float(row['gorduras_saturadas']),
+                    'fibras': float(row['fibras']),
+                    'acucares': float(row['acucares']),
+                    'sodio': float(row['sodio'])
                 }
                 
                 # Garante que a data seja string
                 data_coleta = str(row['data_coleta']) if pd.notna(row['data_coleta']) else None
                 
                 produto = DadoNutricional(
-                    nome=str(row['NOME_PRODUTO']),
-                    url=str(row['URL']),
-                    porcao=valores_numericos['PORCAO (g)'],
-                    calorias=valores_numericos['CALORIAS (kcal)'],
-                    carboidratos=valores_numericos['CARBOIDRATOS (g)'],
-                    proteinas=valores_numericos['PROTEINAS (g)'],
-                    gorduras=valores_numericos['GORDURAS_TOTAIS (g)'],
-                    gorduras_saturadas=valores_numericos['GORDURAS_SATURADAS (g)'],
-                    fibras=valores_numericos['FIBRAS (g)'],
-                    acucares=valores_numericos['ACUCARES (g)'],
-                    sodio=valores_numericos['SODIO (mg)'],
+                    nome=str(row['nome']),
+                    url=str(row['url']),
+                    porcao=valores_numericos['porcao'],
+                    calorias=valores_numericos['calorias'],
+                    carboidratos=valores_numericos['carboidratos'],
+                    proteinas=valores_numericos['proteinas'],
+                    gorduras=valores_numericos['gorduras'],
+                    gorduras_saturadas=valores_numericos['gorduras_saturadas'],
+                    fibras=valores_numericos['fibras'],
+                    acucares=valores_numericos['acucares'],
+                    sodio=valores_numericos['sodio'],
                     categoria=str(row.get('categoria', '')),
                     data_coleta=data_coleta
                 )
@@ -510,42 +532,85 @@ async def cancelar_coleta():
         raise HTTPException(status_code=500, detail=str(e))
 
 async def realizar_coleta(modo: str, categorias: List[str]):
-    """Realiza a coleta de dados em background"""
+    """Realiza a coleta de dados em background com logging detalhado"""
     global coleta_ativa, scraper_instance
     
+    inicio_coleta = datetime.now()
+    estatisticas = {
+        'sucessos': 0,
+        'falhas': 0,
+        'produtos_ja_existentes': 0,
+        'categorias_processadas': 0,
+        'tempo_medio_por_produto': 0
+    }
+    
     try:
+        await emit_log_update("🚀 Iniciando sistema de coleta...", "system")
+        
         # Carrega URLs já coletadas do CSV existente
         urls_ja_coletadas = set()
         if os.path.exists('dados_nutricionais.csv'):
             df_existente = pd.read_csv('dados_nutricionais.csv')
-            urls_ja_coletadas = set(df_existente['URL'])
-            await emit_log_update(f"Encontrados {len(urls_ja_coletadas)} produtos já coletados anteriormente")
+            urls_ja_coletadas = set(df_existente['url'])
+            await emit_log_update(
+                f"📊 Base de dados carregada: {len(urls_ja_coletadas)} produtos já coletados",
+                "info",
+                estatisticas={"produtos_existentes": len(urls_ja_coletadas)}
+            )
+        else:
+            await emit_log_update("📊 Criando nova base de dados (primeira coleta)", "info")
         
         # Obtém as URLs das categorias
         todas_categorias = (await listar_categorias())["categorias"]
-        # Converte os IDs para string para garantir a comparação correta
         categorias = [str(cat) for cat in categorias]
         categorias_selecionadas = [cat for cat in todas_categorias if str(cat["id"]) in categorias]
         
-        await emit_log_update(f"Iniciando coleta para {len(categorias_selecionadas)} categorias")
+        await emit_log_update(
+            f"🎯 Configuração de coleta: {len(categorias_selecionadas)} categorias selecionadas",
+            "system",
+            total=len(categorias_selecionadas)
+        )
+        
+        for i, cat in enumerate(categorias_selecionadas, 1):
+            await emit_log_update(f"  📂 {i}. {cat['nome']}", "info")
+        
+        await emit_log_update(f"⚙️ Modo de coleta: {'🧪 Teste (limitado)' if modo == 'teste' else '🔥 Completo (ilimitado)'}", "system")
         
         # Lista para armazenar todas as URLs coletadas
         todas_urls = []
         
-        # Primeiro coleta todas as URLs de todas as categorias
-        for categoria in categorias_selecionadas:
+        # FASE 1: Coleta de URLs
+        await emit_log_update("📋 FASE 1: Coletando URLs dos produtos...", "system")
+        
+        for idx_cat, categoria in enumerate(categorias_selecionadas, 1):
             if not coleta_ativa:
-                await emit_log_update("Coleta interrompida", "warning")
+                await emit_log_update("⏹️ Coleta interrompida pelo usuário", "warning")
                 if scraper_instance:
                     scraper_instance.cancelar()
                 break
                 
             try:
-                await emit_log_update(f"Coletando URLs da categoria: {categoria['nome']}")
+                progresso_categoria = int((idx_cat - 1) / len(categorias_selecionadas) * 50)  # 50% para coleta URLs
+                
+                await emit_log_update(
+                    f"🔍 Processando categoria: {categoria['nome']}",
+                    "info",
+                    progress=progresso_categoria,
+                    categoria=categoria['nome'],
+                    estatisticas={"fase": "Coleta de URLs", "categoria_atual": f"{idx_cat}/{len(categorias_selecionadas)}"}
+                )
                 
                 # Coleta URLs da categoria
                 collector = URLCollector()
-                urls = collector.coletar_urls(url_categoria=categoria["url"], modo_teste=(modo == "teste"))
+                
+                # Log inicio da coleta de URLs
+                await emit_log_update(f"  🌐 Abrindo navegador para categoria {categoria['nome']}...", "info")
+                
+                urls = collector.coletar_urls(
+                    url_categoria=categoria["url"], 
+                    modo_teste=(modo == "teste"),
+                    categoria_nome=categoria["nome"]
+                )
                 
                 if not coleta_ativa:
                     if scraper_instance:
@@ -554,20 +619,56 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                 
                 # Filtra apenas URLs que ainda não foram coletadas
                 urls_novas = [url for url in urls if url['url'] not in urls_ja_coletadas]
-                await emit_log_update(f"Encontrados {len(urls)} produtos em {categoria['nome']}, sendo {len(urls_novas)} novos")
+                urls_existentes = len(urls) - len(urls_novas)
+                
+                estatisticas['produtos_ja_existentes'] += urls_existentes
+                estatisticas['categorias_processadas'] += 1
+                
+                await emit_log_update(
+                    f"  ✅ {categoria['nome']}: {len(urls)} produtos encontrados ({len(urls_novas)} novos, {urls_existentes} já coletados)",
+                    "success",
+                    categoria=categoria['nome'],
+                    collected=len(urls_novas),
+                    total=len(urls)
+                )
+                
                 todas_urls.extend(urls_novas)
                 
+                # Log detalhado dos primeiros produtos encontrados
+                if urls_novas:
+                    await emit_log_update(f"  📝 Exemplos encontrados:", "info")
+                    for i, url_info in enumerate(urls_novas[:3], 1):
+                        await emit_log_update(f"    {i}. {url_info['nome'][:50]}{'...' if len(url_info['nome']) > 50 else ''}", "info")
+                    if len(urls_novas) > 3:
+                        await emit_log_update(f"    ... e mais {len(urls_novas) - 3} produtos", "info")
+                
             except Exception as e:
-                await emit_log_update(f"Erro ao coletar URLs da categoria {categoria['nome']}: {str(e)}", "error")
+                await emit_log_update(f"❌ Erro ao coletar URLs da categoria {categoria['nome']}: {str(e)}", "error")
+                estatisticas['falhas'] += 1
                 continue
         
-        # Depois coleta os dados nutricionais apenas das URLs novas
+        # FASE 2: Coleta de dados nutricionais
         total_urls = len(todas_urls)
-        await emit_log_update(f"Total de URLs novas para coletar: {total_urls}")
         
         if total_urls == 0:
-            await emit_log_update("✅ Não há novos produtos para coletar!", "success")
+            await emit_log_update("ℹ️ Não há novos produtos para coletar. Base de dados já está atualizada!", "success", progress=100)
             return
+        
+        await emit_log_update(
+            f"🍽️ FASE 2: Coletando dados nutricionais de {total_urls} produtos...",
+            "system",
+            progress=50,
+            total=total_urls
+        )
+        
+        tempo_estimado_por_produto = 8  # segundos por produto estimado
+        tempo_total_estimado = total_urls * tempo_estimado_por_produto
+        
+        await emit_log_update(
+            f"⏱️ Tempo estimado: {tempo_total_estimado // 60}min {tempo_total_estimado % 60}s ({tempo_estimado_por_produto}s por produto)",
+            "info",
+            tempo_estimado=f"{tempo_total_estimado // 60}min {tempo_total_estimado % 60}s"
+        )
         
         # Processa cada URL nova
         for i, url_info in enumerate(todas_urls, 1):
@@ -577,77 +678,310 @@ async def realizar_coleta(modo: str, categorias: List[str]):
                 break
                 
             try:
-                await emit_log_update(f"Processando novo produto {i}/{total_urls}")
+                inicio_produto = datetime.now()
+                progresso = int(50 + (i / total_urls) * 50)  # 50-100% para coleta de dados
+                
+                nome_produto = url_info.get('nome', 'Produto sem nome')[:40]
+                categoria_produto = url_info.get('categoria', 'Categoria não informada')
+                
+                await emit_log_update(
+                    f"🔄 Produto {i}/{total_urls}: {nome_produto}{'...' if len(url_info.get('nome', '')) > 40 else ''}",
+                    "info",
+                    progress=progresso,
+                    collected=estatisticas['sucessos'],
+                    total=total_urls,
+                    categoria=categoria_produto,
+                    produto_nome=nome_produto
+                )
+                
                 # Extrai a URL do dicionário
                 url = url_info['url']
                 
                 # Verifica novamente se a URL já não foi coletada (dupla verificação)
                 if url in urls_ja_coletadas:
-                    await emit_log_update(f"Produto {i}/{total_urls} já foi coletado anteriormente, pulando...", "info")
+                    await emit_log_update(f"  ⏭️ Produto já coletado anteriormente, pulando...", "info")
+                    estatisticas['produtos_ja_existentes'] += 1
                     continue
                 
-                resultado = scraper_instance.extrair_dados_nutricionais(url)
+                await emit_log_update(f"  🌐 Acessando página do produto...", "info")
+                resultado = scraper_instance.extrair_dados_nutricionais(url, categoria_produto)
+                
+                fim_produto = datetime.now()
+                tempo_produto = (fim_produto - inicio_produto).total_seconds()
                 
                 if resultado:
                     # Adiciona a URL ao conjunto de URLs já coletadas
                     urls_ja_coletadas.add(url)
-                    await emit_log_update(f"✅ Novo produto {i}/{total_urls} coletado com sucesso", "success")
+                    estatisticas['sucessos'] += 1
+                    
+                    # Atualiza tempo médio
+                    estatisticas['tempo_medio_por_produto'] = (
+                        (estatisticas['tempo_medio_por_produto'] * (estatisticas['sucessos'] - 1) + tempo_produto) / 
+                        estatisticas['sucessos']
+                    )
+                    
+                    # Calcula novo tempo estimado
+                    produtos_restantes = total_urls - i
+                    tempo_restante = int(produtos_restantes * estatisticas['tempo_medio_por_produto'])
+                    
+                    await emit_log_update(
+                        f"  ✅ Dados coletados com sucesso! ({tempo_produto:.1f}s)",
+                        "success",
+                        progress=progresso,
+                        collected=estatisticas['sucessos'],
+                        tempo_estimado=f"{tempo_restante // 60}min {tempo_restante % 60}s restantes",
+                        estatisticas=estatisticas
+                    )
+                    
+                    # Log dos dados nutricionais coletados
+                    if resultado.get('calorias', 0) > 0:
+                        await emit_log_update(
+                            f"    📊 {resultado.get('calorias', 0)}kcal | Prot: {resultado.get('proteinas', 0)}g | Carb: {resultado.get('carboidratos', 0)}g | Gord: {resultado.get('gorduras', 0)}g",
+                            "info"
+                        )
+                    
                 else:
-                    await emit_log_update(f"❌ Falha ao coletar novo produto {i}/{total_urls}", "error")
+                    estatisticas['falhas'] += 1
+                    await emit_log_update(
+                        f"  ❌ Falha ao extrair dados nutricionais ({tempo_produto:.1f}s)",
+                        "error",
+                        progress=progresso,
+                        estatisticas=estatisticas
+                    )
                 
             except Exception as e:
-                await emit_log_update(f"Erro ao processar produto: {str(e)}", "error")
+                estatisticas['falhas'] += 1
+                await emit_log_update(f"  💥 Erro ao processar produto: {str(e)}", "error")
                 continue
         
+        # Finalização
         if coleta_ativa:
-            await emit_log_update("✅ Coleta finalizada com sucesso", "success")
+            tempo_total = (datetime.now() - inicio_coleta).total_seconds()
+            
+            await emit_log_update(
+                "🎉 Coleta finalizada com sucesso!",
+                "success",
+                progress=100,
+                collected=estatisticas['sucessos'],
+                total=total_urls,
+                estatisticas=estatisticas
+            )
+            
+            await emit_log_update(
+                f"📈 Resumo da coleta:",
+                "system",
+                estatisticas=estatisticas
+            )
+            await emit_log_update(f"  ✅ Sucessos: {estatisticas['sucessos']}", "success")
+            await emit_log_update(f"  ❌ Falhas: {estatisticas['falhas']}", "error")
+            await emit_log_update(f"  📂 Categorias processadas: {estatisticas['categorias_processadas']}", "info")
+            await emit_log_update(f"  ⏱️ Tempo total: {int(tempo_total // 60)}min {int(tempo_total % 60)}s", "info")
+            await emit_log_update(f"  📊 Taxa de sucesso: {(estatisticas['sucessos'] / (estatisticas['sucessos'] + estatisticas['falhas']) * 100):.1f}%" if (estatisticas['sucessos'] + estatisticas['falhas']) > 0 else "0%", "info")
         
     except Exception as e:
-        await emit_log_update(f"❌ Erro durante a coleta: {str(e)}", "error")
+        await emit_log_update(f"💥 Erro crítico durante a coleta: {str(e)}", "error", estatisticas=estatisticas)
     
     finally:
         coleta_ativa = False
         if scraper_instance:
             scraper_instance.cancelar()
             scraper_instance = None
-        await emit_log_update("Sistema pronto para nova coleta", "info")
+        await emit_log_update("🏁 Sistema pronto para nova coleta", "system")
 
 @app.get("/download-excel")
 async def download_excel():
-    """Endpoint para download dos dados em formato Excel"""
+    """
+    Baixa os dados nutricionais em formato Excel
+    """
+    # TODO: Implementar lógica para ler os dados do arquivo/banco
+    # Por enquanto, vamos criar um DataFrame de exemplo
+    dados = []
+    
+    # Verificar se existe arquivo de dados
+    if os.path.exists("dados_nutricionais.csv"):
+        try:
+            df = pd.read_csv("dados_nutricionais.csv")
+            dados = df.to_dict('records')
+        except Exception as e:
+            logger.error(f"Erro ao ler dados do arquivo CSV: {e}")
+    
+    if not dados:
+        dados = [{
+            "nome": "Exemplo - Produto não encontrado",
+            "categoria": "Nenhuma",
+            "porcao": 100,
+            "calorias": 0,
+            "carboidratos": 0,
+            "proteinas": 0,
+            "gorduras": 0,
+            "gorduras_saturadas": 0,
+            "fibras": 0,
+            "acucares": 0,
+            "sodio": 0,
+            "data_coleta": datetime.now().strftime("%Y-%m-%d")
+        }]
+    
+    df = pd.DataFrame(dados)
+    
+    # Criar arquivo Excel em memória
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Dados Nutricionais', index=False)
+    
+    output.seek(0)
+    
+    # Retornar o arquivo como resposta de streaming
+    return StreamingResponse(
+        io.BytesIO(output.read()),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": "attachment; filename=dados_nutricionais.xlsx"}
+    )
+
+# Endpoints com prefixo /api/ para compatibilidade com o frontend
+@app.get("/api/categorias")
+async def api_listar_categorias():
+    """Lista as categorias disponíveis para scraping (API endpoint)"""
+    return await listar_categorias()
+
+@app.get("/api/produtos")
+async def api_listar_produtos(
+    page: int = Query(1, description="Número da página (começa em 1)"),
+    limit: int = Query(10, description="Número máximo de registros por página"),
+    search: Optional[str] = Query(None, description="Filtrar por nome do produto (busca parcial)"),
+    categoria: Optional[str] = Query(None, description="Filtrar por categoria de produto")
+):
+    """
+    Lista os produtos coletados com paginação e filtros (API endpoint)
+    
+    - **page**: Número da página (começa em 1)
+    - **limit**: Número máximo de registros por página
+    - **search**: Filtrar por nome do produto (busca parcial)
+    - **categoria**: Filtrar por categoria de produto
+    """
     try:
+        # Verifica se o arquivo de dados existe
+        if not os.path.exists("dados_nutricionais.csv"):
+            return {"produtos": [], "total": 0}
+        
         # Lê o arquivo CSV
         df = pd.read_csv("dados_nutricionais.csv")
         
-        # Cria um buffer em memória para o Excel
-        output = io.BytesIO()
+        # Aplica filtros se fornecidos
+        if categoria:
+            df = df[df['categoria'].str.contains(categoria, case=False, na=False)]
+        if search:
+            df = df[df['nome'].str.contains(search, case=False, na=False)]
         
-        # Salva o DataFrame como Excel no buffer
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            df.to_excel(writer, sheet_name='Dados Nutricionais', index=False)
-            
-            # Ajusta largura das colunas
-            worksheet = writer.sheets['Dados Nutricionais']
-            for i, col in enumerate(df.columns):
-                max_length = max(df[col].astype(str).apply(len).max(), len(col)) + 2
-                worksheet.set_column(i, i, max_length)
+        # Total de produtos após filtros
+        total_produtos = len(df)
         
-        # Prepara o buffer para leitura
-        output.seek(0)
+        # Ordena por data de coleta decrescente (mais recente primeiro)
+        try:
+            df['data_coleta_dt'] = pd.to_datetime(df['data_coleta'], format='mixed', errors='coerce')
+            mask_na = df['data_coleta_dt'].isna()
+            if mask_na.any():
+                df.loc[mask_na, 'data_coleta_dt'] = pd.to_datetime(
+                    df.loc[mask_na, 'data_coleta'], 
+                    format='%Y-%m-%d', 
+                    errors='coerce'
+                )
+            df = df.sort_values('data_coleta_dt', ascending=False, na_position='last')
+            df = df.drop('data_coleta_dt', axis=1)
+        except Exception as e:
+            logger.warning(f"Erro ao ordenar por data: {e}. Mantendo ordem original.")
         
-        # Retorna o arquivo Excel como resposta
-        headers = {
-            'Content-Disposition': 'attachment; filename=dados_nutricionais.xlsx'
+        # Aplica paginação
+        skip = (page - 1) * limit
+        df_paginado = df.iloc[skip:skip + limit]
+        
+        # Converte para o formato da API
+        produtos = []
+        for idx, row in df_paginado.iterrows():
+            try:
+                produto = {
+                    "id": int(idx),  # Usa o índice como ID
+                    "nome": str(row['nome']),
+                    "categoria": str(row.get('categoria', '')),
+                    "url": str(row['url']),
+                    "porcao": float(row['porcao']),
+                    "calorias": float(row['calorias']),
+                    "energia": float(row['calorias']),  # Alias para calorias
+                    "carboidratos": float(row['carboidratos']),
+                    "proteinas": float(row['proteinas']),
+                    "gorduras": float(row['gorduras']),
+                    "gorduras_saturadas": float(row['gorduras_saturadas']),
+                    "fibras": float(row['fibras']),
+                    "acucares": float(row['acucares']),
+                    "sodio": float(row['sodio']),
+                    "data_coleta": str(row['data_coleta']) if pd.notna(row['data_coleta']) else None
+                }
+                produtos.append(produto)
+            except Exception as e:
+                logger.error(f"Erro ao converter linha do CSV: {str(e)}")
+                continue
+        
+        return {
+            "produtos": produtos,
+            "total": total_produtos
         }
-        return StreamingResponse(
-            output,
-            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            headers=headers
-        )
-    
+        
     except Exception as e:
-        logger.error(f"Erro ao gerar arquivo Excel: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Erro ao listar produtos: {str(e)}")
+        return {"produtos": [], "total": 0}
+
+@app.get("/api/produtos/{produto_id}")
+async def api_obter_produto(produto_id: int):
+    """Obtém detalhes de um produto específico (API endpoint)"""
+    try:
+        # Verifica se o arquivo de dados existe
+        if not os.path.exists("dados_nutricionais.csv"):
+            raise HTTPException(status_code=404, detail="Nenhum dado nutricional disponível")
+        
+        # Lê o arquivo CSV
+        df = pd.read_csv("dados_nutricionais.csv")
+        
+        # Verifica se o produto existe
+        if produto_id >= len(df):
+            raise HTTPException(status_code=404, detail="Produto não encontrado")
+        
+        # Obtém o produto pelo índice
+        row = df.iloc[produto_id]
+        
+        produto = {
+            "id": produto_id,
+            "nome": str(row['nome']),
+            "categoria": str(row.get('categoria', '')),
+            "url": str(row['url']),
+            "porcao": float(row['porcao']),
+            "calorias": float(row['calorias']),
+            "energia": float(row['calorias']),  # Alias para calorias
+            "carboidratos": float(row['carboidratos']),
+            "proteinas": float(row['proteinas']),
+            "gorduras": float(row['gorduras']),
+            "gorduras_saturadas": float(row['gorduras_saturadas']),
+            "fibras": float(row['fibras']),
+            "acucares": float(row['acucares']),
+            "sodio": float(row['sodio']),
+            "data_coleta": str(row['data_coleta']) if pd.notna(row['data_coleta']) else None
+        }
+        
+        return produto
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Erro ao obter produto: {str(e)}")
+        raise HTTPException(status_code=500, detail="Erro interno do servidor")
+
+@app.get("/api/download-excel")
+async def api_download_excel(
+    search: Optional[str] = Query(None, description="Filtrar por nome do produto"),
+    categoria: Optional[str] = Query(None, description="Filtrar por categoria")
+):
+    """
+    Baixa os dados nutricionais em formato Excel (API endpoint)
+    """
+    return await download_excel()
 
 # Eventos do Socket.IO
 @sio.event
@@ -659,9 +993,68 @@ async def disconnect(sid):
     print(f"Cliente desconectado: {sid}")
 
 # Função para emitir atualizações do log
-async def emit_log_update(message: str, type: str = "info"):
-    await sio.emit('log_update', {'message': message, 'type': type})
+async def emit_log_update(message: str, type: str = "info", progress: int = None, 
+                         collected: int = None, total: int = None, categoria: str = None,
+                         produto_nome: str = None, tempo_estimado: str = None,
+                         estatisticas: dict = None):
+    """
+    Emite atualizações do log com informações detalhadas
+    
+    Args:
+        message: Mensagem principal do log
+        type: Tipo do log (info, success, error, warning, system)
+        progress: Progresso em porcentagem (0-100)
+        collected: Número de produtos coletados
+        total: Total de produtos a coletar
+        categoria: Categoria atual sendo processada
+        produto_nome: Nome do produto atual
+        tempo_estimado: Tempo estimado para conclusão
+        estatisticas: Dicionário com estatísticas detalhadas
+    """
+    log_data = {
+        'message': message, 
+        'type': type,
+        'timestamp': datetime.now().isoformat()
+    }
+    
+    # Adiciona informações opcionais se fornecidas
+    if progress is not None:
+        log_data['progress'] = progress
+    if collected is not None:
+        log_data['collected'] = collected
+    if total is not None:
+        log_data['total'] = total
+    if categoria:
+        log_data['categoria'] = categoria
+    if produto_nome:
+        log_data['produto_nome'] = produto_nome
+    if tempo_estimado:
+        log_data['tempo_estimado'] = tempo_estimado
+    if estatisticas:
+        log_data['estatisticas'] = estatisticas
+    
+    await sio.emit('log_update', log_data)
+
+# Função para abrir o navegador
+def abrir_navegador(host: str, port: int):
+    """Abre o navegador após aguardar o servidor iniciar"""
+    time.sleep(1.5)  # Aguarda 1.5 segundos para o servidor iniciar completamente
+    url = f"http://{host}:{port}"
+    print(f"\n🚀 Abrindo navegador automaticamente: {url}")
+    webbrowser.open(url)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("api:socket_app", host="0.0.0.0", port=port, reload=True) 
+    host = "localhost"  # Usando localhost para abrir no navegador local
+    
+    # Inicia thread para abrir o navegador
+    browser_thread = Thread(target=abrir_navegador, args=(host, port))
+    browser_thread.daemon = True
+    browser_thread.start()
+    
+    print(f"🌟 Iniciando API de Dados Nutricionais...")
+    print(f"📍 Servidor será executado em: http://{host}:{port}")
+    print(f"🌐 O navegador abrirá automaticamente!")
+    
+    # Executa o servidor (usando localhost para consistência)
+    uvicorn.run("api:socket_app", host="0.0.0.0", port=port, reload=True)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   

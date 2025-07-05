@@ -2,186 +2,971 @@
 
 {% block title %}Coletar Dados - API de Dados Nutricionais{% endblock %}
 
+{% block styles %}
+<style>
+/* Estilos específicos para a página de coleta */
+.page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-4xl);
+}
+
+.page-title {
+    font-size: var(--font-size-4xl);
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+}
+
+.page-description {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.form-section {
+    background: var(--background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-3xl);
+    margin-bottom: var(--spacing-xl);
+    border: 1px solid var(--border-color);
+}
+
+.form-section__title {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-primary);
+}
+
+.form-row {
+    display: flex;
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-col {
+    flex: 1;
+}
+
+.form-help {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-top: var(--spacing-sm);
+}
+
+.btn-group {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+}
+
+.log-section {
+    background: var(--background-secondary);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-3xl);
+    margin-top: var(--spacing-xl);
+    border: 1px solid var(--border-color);
+}
+
+.log-section__title {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.log-content {
+    background: var(--background-primary);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    max-height: 400px;
+    overflow-y: auto;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+}
+
+.log-entry {
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    border-left: 3px solid var(--border-color);
+}
+
+.log-entry.info {
+    border-left-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+}
+
+.log-entry.success {
+    border-left-color: var(--success-color);
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success-color);
+}
+
+.log-entry.error {
+    border-left-color: var(--error-color);
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-color);
+}
+
+.log-entry.warning {
+    border-left-color: var(--warning-color);
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.log-entry.system {
+    border-left-color: #8b5cf6;
+    background: rgba(139, 92, 246, 0.1);
+    color: #a78bfa;
+}
+
+.timestamp {
+    font-weight: 600;
+    opacity: 0.8;
+}
+
+/* Elementos adicionais do log detalhado */
+.categoria-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    margin-left: 8px;
+}
+
+.produto-info {
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-left: 8px;
+}
+
+.tempo-info {
+    color: var(--warning-color);
+    font-size: 0.8rem;
+    margin-left: 8px;
+    opacity: 0.9;
+}
+
+.progress-info {
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mini-progress-bar {
+    width: 100px;
+    height: 4px;
+    background: var(--background-accent);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.mini-progress-fill {
+    height: 100%;
+    background: var(--accent-primary);
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Scrollbar personalizada para o log */
+.log-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.log-content::-webkit-scrollbar-track {
+    background: var(--background-accent);
+    border-radius: var(--border-radius-sm);
+}
+
+.log-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--border-radius-sm);
+}
+
+.log-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* Estilos para estatísticas detalhadas */
+.stats-card {
+    background: var(--background-primary);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all var(--transition-normal);
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stats-card.success {
+    border-left: 4px solid var(--success-color);
+}
+
+.stats-card.error {
+    border-left: 4px solid var(--error-color);
+}
+
+.stats-card.info {
+    border-left: 4px solid #3b82f6;
+}
+
+.stats-card.warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+.stats-icon {
+    font-size: var(--font-size-xl);
+    margin-bottom: var(--spacing-sm);
+}
+
+.stats-number {
+    font-size: var(--font-size-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stats-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Atividade atual */
+.activity-info {
+    background: var(--background-primary);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.activity-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    max-width: 60%;
+    text-align: right;
+    word-break: break-word;
+}
+
+/* Classes para cores de texto */
+.text-info { color: #3b82f6; }
+.text-warning { color: var(--warning-color); }
+.text-primary { color: var(--accent-primary); }
+.text-success { color: var(--success-color); }
+
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    /* Ajustes para estatísticas em mobile */
+    .grid--4 {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md);
+    }
+    
+    .activity-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+    
+    .activity-value {
+        max-width: 100%;
+        text-align: left;
+    }
+    
+    .progress-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+    
+    .mini-progress-bar {
+        width: 100%;
+    }
+    
+    .stats-card {
+        padding: var(--spacing-md);
+    }
+    
+    .stats-number {
+        font-size: var(--font-size-xl);
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1>Coletar Dados</h1>
-    <p>Configure e inicie uma nova coleta de dados nutricionais</p>
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Coletar Dados</h1>
+    <p class="page-description">
+        Configure e inicie uma nova coleta de dados nutricionais do Pão de Açúcar
+    </p>
+</div>
 
+<!-- Form Section -->
+<div class="form-section">
+    <h2 class="form-section__title">
+        <i class="fas fa-cog"></i>
+        Configurações de Coleta
+    </h2>
+    
     <form id="coleta-form" method="POST">
-        <div class="select-container">
-            <label class="select-label">Modo de Coleta</label>
-            <select name="modo">
-                <option value="teste">Modo Teste - Coleta limitada para testes</option>
-                <option value="ilimitado">Modo Ilimitado - Coleta sem limites</option>
-            </select>
+        <div class="form-row">
+            <div class="form-col">
+                <div class="form-group">
+                    <label class="form-label" for="modo">Modo de Coleta</label>
+                    <select name="modo" id="modo" class="form-select">
+                        <option value="teste">Modo Teste - Coleta limitada para testes</option>
+                        <option value="ilimitado">Modo Ilimitado - Coleta sem limites</option>
+                    </select>
+                    <div class="form-help">
+                        Escolha o modo teste para uma coleta rápida ou ilimitado para coleta completa
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="select-container" id="categoriasGroup">
-            <label class="select-label">Selecione as Categorias</label>
-            <select name="categorias" multiple>
-                <option value="1">Açougue</option>
-                <option value="2">Alimentos Congelados</option>
-                <option value="3">Alimentos Refrigerados</option>
-                <option value="4">Básicos da Despensa</option>
-                <option value="5">Cereais</option>
-                <option value="6">Complemento da Despensa</option>
-                <option value="7">Doces e Sobremesas</option>
-                <option value="8">Hortifruti</option>
-                <option value="9">Mercearia Salgada</option>
-                <option value="10">Padaria</option>
-                <option value="11">Peixaria</option>
-                <option value="12">Rotisserie</option>
-                <option value="13">Salgadinhos e Aperitivos</option>
-            </select>
-            <span class="select-help">Pressione CTRL para selecionar múltiplas categorias</span>
+        <div class="form-row">
+            <div class="form-col">
+                <div class="form-group">
+                    <label class="form-label" for="categorias">Categorias de Produtos</label>
+                    <select name="categorias" id="categorias" class="form-select" multiple>
+                        <option value="1">Açougue</option>
+                        <option value="2">Alimentos Congelados</option>
+                        <option value="3">Alimentos Refrigerados</option>
+                        <option value="4">Básicos da Despensa</option>
+                        <option value="5">Cereais</option>
+                        <option value="6">Complemento da Despensa</option>
+                        <option value="7">Doces e Sobremesas</option>
+                        <option value="8">Hortifruti</option>
+                        <option value="9">Mercearia Salgada</option>
+                        <option value="10">Padaria</option>
+                        <option value="11">Peixaria</option>
+                        <option value="12">Rotisserie</option>
+                        <option value="13">Salgadinhos e Aperitivos</option>
+                    </select>
+                    <div class="form-help">
+                        Mantenha pressionado Ctrl (ou Cmd no Mac) para selecionar múltiplas categorias
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="button-group">
+        <div class="btn-group">
             <button type="submit" id="iniciar-btn" class="btn btn--primary">
                 <i class="fas fa-play"></i>
                 Iniciar Coleta
             </button>
-            <button type="button" id="cancelar-btn" class="btn btn--danger" style="display: none;">
+            <button type="button" id="cancelar-btn" class="btn btn--danger hidden">
                 <i class="fas fa-stop"></i>
                 Cancelar Coleta
             </button>
         </div>
     </form>
+</div>
 
-    <div id="log-container" class="log-container" style="display: none;">
-        <h2>Log de Atividades</h2>
-        <div id="log-content" class="log-content"></div>
+<!-- Log Section -->
+<div class="log-section hidden" id="log-section">
+    <h2 class="log-section__title">
+        <i class="fas fa-terminal"></i>
+        Log de Atividades
+    </h2>
+    <div id="log-content" class="log-content">
+        <!-- Os logs serão inseridos aqui dinamicamente -->
     </div>
 </div>
 
+<!-- Status Cards -->
+<div class="section">
+    <div class="grid grid--4">
+        <div class="card text-center">
+            <div class="card__icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <h3 class="card__title">Status</h3>
+            <p class="card__description" id="status-display">Aguardando</p>
+        </div>
+        <div class="card text-center">
+            <div class="card__icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="card__title">Progresso</h3>
+            <p class="card__description" id="progress-display">0%</p>
+        </div>
+        <div class="card text-center">
+            <div class="card__icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <h3 class="card__title">Coletados</h3>
+            <p class="card__description" id="collected-display">0</p>
+        </div>
+        <div class="card text-center">
+            <div class="card__icon">
+                <i class="fas fa-timer"></i>
+            </div>
+            <h3 class="card__title">Tempo Restante</h3>
+            <p class="card__description" id="time-remaining-display">-</p>
+        </div>
+    </div>
+</div>
+
+<!-- Estatísticas Detalhadas (oculta inicialmente) -->
+<div class="section hidden" id="stats-section">
+    <div class="form-section">
+        <h2 class="form-section__title">
+            <i class="fas fa-chart-bar"></i>
+            Estatísticas da Coleta em Tempo Real
+        </h2>
+        
+        <div class="grid grid--4">
+            <div class="stats-card success">
+                <div class="stats-icon">✅</div>
+                <div class="stats-number" id="stats-success">0</div>
+                <div class="stats-label">Sucessos</div>
+            </div>
+            <div class="stats-card error">
+                <div class="stats-icon">❌</div>
+                <div class="stats-number" id="stats-errors">0</div>
+                <div class="stats-label">Falhas</div>
+            </div>
+            <div class="stats-card info">
+                <div class="stats-icon">📂</div>
+                <div class="stats-number" id="stats-categories">0</div>
+                <div class="stats-label">Categorias</div>
+            </div>
+            <div class="stats-card warning">
+                <div class="stats-icon">⏱️</div>
+                <div class="stats-number" id="stats-avg-time">0s</div>
+                <div class="stats-label">Tempo Médio</div>
+            </div>
+        </div>
+        
+        <div class="current-activity" id="current-activity" style="margin-top: var(--spacing-lg);">
+            <h4 style="color: var(--text-primary); margin-bottom: var(--spacing-md);">
+                <i class="fas fa-activity"></i>
+                Atividade Atual
+            </h4>
+            <div class="activity-info">
+                <div class="activity-item">
+                    <span class="activity-label">Categoria:</span>
+                    <span class="activity-value" id="current-category">-</span>
+                </div>
+                <div class="activity-item">
+                    <span class="activity-label">Produto:</span>
+                    <span class="activity-value" id="current-product">-</span>
+                </div>
+                <div class="activity-item">
+                    <span class="activity-label">Fase:</span>
+                    <span class="activity-value" id="current-phase">Aguardando</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Finalização da Coleta -->
+<div id="completion-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">🎉 Coleta Concluída!</h3>
+        </div>
+        <div class="modal-body">
+            <div class="completion-stats">
+                <div class="completion-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="completion-message">
+                    <h4>Coleta de dados finalizada com sucesso!</h4>
+                    <p>Todos os dados nutricionais foram coletados e salvos.</p>
+                </div>
+                <div class="completion-summary">
+                    <div class="summary-item">
+                        <span class="summary-label">Produtos coletados:</span>
+                        <span class="summary-value" id="modal-collected">0</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Taxa de sucesso:</span>
+                        <span class="summary-value" id="modal-success-rate">0%</span>
+                    </div>
+                    <div class="summary-item">
+                        <span class="summary-label">Tempo total:</span>
+                        <span class="summary-value" id="modal-total-time">0min</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn--primary" onclick="closeCompletionModal()">
+                <i class="fas fa-check"></i>
+                Entendi
+            </button>
+            <button type="button" class="btn btn--secondary" onclick="startNewCollection()">
+                <i class="fas fa-plus"></i>
+                Nova Coleta
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const socket = io({
         reconnection: true,
-        reconnectionAttempts: Infinity,  // Tenta reconectar indefinidamente
+        reconnectionAttempts: Infinity,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         timeout: 20000
     });
     
+    // Elementos da interface
     const logContent = document.getElementById('log-content');
+    const logSection = document.getElementById('log-section');
     const form = document.getElementById('coleta-form');
-    const categoriasSelect = document.querySelector('select[name="categorias"]');
-    const logContainer = document.getElementById('log-container');
+    const categoriasSelect = document.getElementById('categorias');
     const iniciarBtn = document.getElementById('iniciar-btn');
     const cancelarBtn = document.getElementById('cancelar-btn');
+    const statusDisplay = document.getElementById('status-display');
+    const progressDisplay = document.getElementById('progress-display');
+    const collectedDisplay = document.getElementById('collected-display');
+    const timeRemainingDisplay = document.getElementById('time-remaining-display');
+    const statsSection = document.getElementById('stats-section');
+    
+    // Elementos das estatísticas detalhadas
+    const statsSuccess = document.getElementById('stats-success');
+    const statsErrors = document.getElementById('stats-errors');
+    const statsCategories = document.getElementById('stats-categories');
+    const statsAvgTime = document.getElementById('stats-avg-time');
+    const currentCategory = document.getElementById('current-category');
+    const currentProduct = document.getElementById('current-product');
+    const currentPhase = document.getElementById('current-phase');
+    
     let coletaEmAndamento = false;
     let ultimaMensagem = '';
     let tentativasReconexao = 0;
 
-    // Conexão Socket.IO
+    // Funções de utilidade
+    function adicionarLog(mensagem, tipo = 'info') {
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-entry ${tipo}`;
+        const timestamp = new Date().toLocaleTimeString();
+        logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${mensagem}`;
+        logContent.appendChild(logEntry);
+        logContent.scrollTop = logContent.scrollHeight;
+    }
+
+    function adicionarLogDetalhado(mensagem, tipo = 'info', timestamp, data = {}) {
+        const logEntry = document.createElement('div');
+        logEntry.className = `log-entry ${tipo}`;
+        
+        let conteudoHtml = `<span class="timestamp">[${timestamp}]</span> ${mensagem}`;
+        
+        // Adiciona informações extras se disponíveis
+        if (data.categoria) {
+            conteudoHtml += ` <span class="categoria-badge">[${data.categoria}]</span>`;
+        }
+        
+        if (data.produto_nome && !mensagem.includes(data.produto_nome)) {
+            conteudoHtml += ` <span class="produto-info">${data.produto_nome}</span>`;
+        }
+        
+        if (data.tempo_estimado && tipo !== 'error') {
+            conteudoHtml += ` <span class="tempo-info">⏱️ ${data.tempo_estimado}</span>`;
+        }
+        
+        // Adiciona barra de progresso visual se for um produto sendo processado
+        if (data.progress && data.collected !== undefined && data.total) {
+            const porcentagem = Math.round((data.collected / data.total) * 100);
+            conteudoHtml += `
+                <div class="progress-info">
+                    <div class="mini-progress-bar">
+                        <div class="mini-progress-fill" style="width: ${data.progress}%"></div>
+                    </div>
+                    <span class="progress-text">${data.collected}/${data.total} (${porcentagem}%)</span>
+                </div>
+            `;
+        }
+        
+        logEntry.innerHTML = conteudoHtml;
+        logContent.appendChild(logEntry);
+        logContent.scrollTop = logContent.scrollHeight;
+        
+        // Remove logs antigos se houver muitos (mantém últimos 100)
+        if (logContent.children.length > 100) {
+            logContent.removeChild(logContent.firstChild);
+        }
+    }
+
+    function atualizarStatus(status) {
+        statusDisplay.textContent = status;
+        statusDisplay.className = `card__description text-${status === 'Coletando' ? 'warning' : status === 'Concluído' ? 'success' : 'secondary'}`;
+    }
+
+    function atualizarProgresso(progresso) {
+        progressDisplay.textContent = `${progresso}%`;
+        
+        // Adiciona classe visual baseada no progresso
+        progressDisplay.className = 'card__description';
+        if (progresso < 25) {
+            progressDisplay.classList.add('text-info');
+        } else if (progresso < 50) {
+            progressDisplay.classList.add('text-warning');
+        } else if (progresso < 100) {
+            progressDisplay.classList.add('text-primary');
+        } else {
+            progressDisplay.classList.add('text-success');
+        }
+    }
+
+    function atualizarColetados(quantidade) {
+        collectedDisplay.textContent = quantidade;
+        
+        // Animação visual para novos produtos coletados
+        if (quantidade > 0) {
+            collectedDisplay.classList.add('text-success');
+            collectedDisplay.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                collectedDisplay.style.transform = 'scale(1)';
+            }, 200);
+        }
+    }
+
+    function iniciarColeta() {
+        coletaEmAndamento = true;
+        iniciarBtn.classList.add('hidden');
+        cancelarBtn.classList.remove('hidden');
+        categoriasSelect.disabled = true;
+        logSection.classList.remove('hidden');
+        statsSection.classList.remove('hidden'); // Mostra estatísticas
+        logContent.innerHTML = '';
+        ultimaMensagem = '';
+        
+        // Reset das estatísticas
+        atualizarEstatisticas({
+            sucessos: 0,
+            falhas: 0,
+            categorias_processadas: 0,
+            tempo_medio_por_produto: 0
+        });
+        
+        atualizarStatus('Inicializando');
+        atualizarAtividadeAtual('Iniciando sistema...', '', 'Inicialização');
+        adicionarLog('🚀 Iniciando coleta...', 'system');
+    }
+
+    function finalizarColeta() {
+        coletaEmAndamento = false;
+        iniciarBtn.classList.remove('hidden');
+        cancelarBtn.classList.add('hidden');
+        categoriasSelect.disabled = false;
+        atualizarStatus('Concluído');
+        atualizarAtividadeAtual('Coleta finalizada', '', 'Finalizado');
+        timeRemainingDisplay.textContent = '-';
+        
+        // Exibir modal de finalização
+        mostrarModalFinalizacao();
+    }
+
+    function atualizarEstatisticas(estatisticas) {
+        if (estatisticas.sucessos !== undefined) {
+            statsSuccess.textContent = estatisticas.sucessos;
+            // Animação visual
+            statsSuccess.style.transform = 'scale(1.2)';
+            setTimeout(() => statsSuccess.style.transform = 'scale(1)', 200);
+        }
+        
+        if (estatisticas.falhas !== undefined) {
+            statsErrors.textContent = estatisticas.falhas;
+        }
+        
+        if (estatisticas.categorias_processadas !== undefined) {
+            statsCategories.textContent = estatisticas.categorias_processadas;
+        }
+        
+        if (estatisticas.tempo_medio_por_produto !== undefined) {
+            const tempoFormatado = estatisticas.tempo_medio_por_produto > 0 ? 
+                                 `${estatisticas.tempo_medio_por_produto.toFixed(1)}s` : 
+                                 '0s';
+            statsAvgTime.textContent = tempoFormatado;
+        }
+    }
+
+    function atualizarAtividadeAtual(categoria, produto, fase) {
+        if (categoria) currentCategory.textContent = categoria;
+        if (produto) currentProduct.textContent = produto;
+        if (fase) currentPhase.textContent = fase;
+    }
+
+    function atualizarTempoRestante(tempoRestante) {
+        if (tempoRestante && tempoRestante !== '-') {
+            timeRemainingDisplay.textContent = tempoRestante;
+            timeRemainingDisplay.classList.add('text-warning');
+        } else {
+            timeRemainingDisplay.textContent = '-';
+            timeRemainingDisplay.className = 'card__description';
+        }
+    }
+    
+    // Funções do modal de finalização
+    function mostrarModalFinalizacao() {
+        const modal = document.getElementById('completion-modal');
+        const sucessos = parseInt(statsSuccess.textContent) || 0;
+        const falhas = parseInt(statsErrors.textContent) || 0;
+        const total = sucessos + falhas;
+        const taxaSucesso = total > 0 ? ((sucessos / total) * 100).toFixed(1) : 0;
+        
+        // Preencher dados do modal
+        document.getElementById('modal-collected').textContent = sucessos;
+        document.getElementById('modal-success-rate').textContent = taxaSucesso + '%';
+        document.getElementById('modal-total-time').textContent = calcularTempoTotalFormatado();
+        
+        // Exibir modal com animação
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.style.opacity = '1';
+        }, 10);
+        
+        // Reproduzir som de sucesso
+        reproduzirSomSucesso();
+    }
+    
+    function calcularTempoTotalFormatado() {
+        // Calcula tempo baseado na estimativa da coleta
+        const tempoMedio = parseFloat(statsAvgTime.textContent) || 0;
+        const sucessos = parseInt(statsSuccess.textContent) || 0;
+        const tempoTotal = tempoMedio * sucessos;
+        
+        const minutos = Math.floor(tempoTotal / 60);
+        const segundos = Math.floor(tempoTotal % 60);
+        
+        if (minutos > 0) {
+            return `${minutos}min ${segundos}s`;
+        } else {
+            return `${segundos}s`;
+        }
+    }
+    
+    function reproduzirSomSucesso() {
+        try {
+            // Criar som de sucesso usando Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // Configurar som de sucesso (duas notas)
+            const frequencia1 = 523.25; // C5
+            const frequencia2 = 783.99; // G5
+            
+            oscillator.frequency.setValueAtTime(frequencia1, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(frequencia2, audioContext.currentTime + 0.2);
+            
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.6);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.6);
+        } catch (error) {
+            console.log('Não foi possível reproduzir som de sucesso:', error);
+        }
+    }
+    
+    // Funções globais do modal
+    window.closeCompletionModal = function() {
+        const modal = document.getElementById('completion-modal');
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    };
+    
+    window.startNewCollection = function() {
+        window.closeCompletionModal();
+        // Limpar logs anteriores
+        logContent.innerHTML = '';
+        
+        // Resetar estatísticas
+        statsSuccess.textContent = '0';
+        statsErrors.textContent = '0';
+        statsCategories.textContent = '0';
+        statsAvgTime.textContent = '0s';
+        atualizarProgresso(0);
+        atualizarColetados(0);
+        
+        // Resetar atividade atual
+        atualizarAtividadeAtual('-', '-', 'Aguardando');
+        
+        // Focar no formulário
+        document.getElementById('categorias').focus();
+    };
+
+    // Eventos Socket.IO
     socket.on('connect', () => {
         console.log('Conectado ao servidor');
-        adicionarLogSistema('Conectado ao servidor', 'success');
+        adicionarLog('Conectado ao servidor', 'success');
         tentativasReconexao = 0;
     });
 
     socket.on('disconnect', () => {
         console.log('Desconectado do servidor');
-        adicionarLogSistema('Desconectado do servidor. Tentando reconectar...', 'warning');
+        adicionarLog('Desconectado do servidor. Tentando reconectar...', 'warning');
     });
 
     socket.on('reconnect', (attemptNumber) => {
         console.log('Reconectado ao servidor');
-        adicionarLogSistema('Reconectado ao servidor', 'success');
+        adicionarLog('Reconectado ao servidor', 'success');
         tentativasReconexao = 0;
     });
 
     socket.on('reconnect_error', (error) => {
         console.error('Erro ao reconectar:', error);
         tentativasReconexao++;
-        adicionarLogSistema(`Erro ao reconectar ao servidor (tentativa ${tentativasReconexao})`, 'error');
+        adicionarLog(`Erro ao reconectar (tentativa ${tentativasReconexao})`, 'error');
     });
 
     socket.on('reconnect_attempt', () => {
-        adicionarLogSistema('Tentando reconectar ao servidor...', 'info');
+        adicionarLog('Tentando reconectar...', 'info');
     });
 
-    // Função para adicionar logs do sistema
-    function adicionarLogSistema(mensagem, tipo) {
-        const logEntry = document.createElement('div');
-        logEntry.className = `log-entry system ${tipo}`;
-        const timestamp = new Date().toLocaleTimeString();
-        logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> Sistema: ${mensagem}`;
-        logContent.appendChild(logEntry);
-        logContent.scrollTop = logContent.scrollHeight;
-    }
-
-    // Atualização do log em tempo real
     socket.on('log_update', function(data) {
-        // Evita mensagens duplicadas
-        if (data.message === ultimaMensagem) {
-            return;
-        }
+        if (data.message === ultimaMensagem) return;
         ultimaMensagem = data.message;
 
-        const logEntry = document.createElement('div');
-        logEntry.className = `log-entry ${data.type}`;
-        
-        const timestamp = new Date().toLocaleTimeString();
-        logEntry.innerHTML = `<span class="timestamp">[${timestamp}]</span> ${data.message}`;
-        
-        logContent.appendChild(logEntry);
-        logContent.scrollTop = logContent.scrollHeight;
+        // Adiciona log com timestamp se disponível
+        const timestamp = data.timestamp ? new Date(data.timestamp).toLocaleTimeString() : new Date().toLocaleTimeString();
+        adicionarLogDetalhado(data.message, data.type, timestamp, data);
 
-        // Se receber mensagem de conclusão ou cancelamento, finaliza a coleta
-        if (data.message.includes('Coleta finalizada com sucesso') ||
-            data.message.includes('Sistema pronto para nova coleta')) {
+        // Atualizar métricas se disponíveis
+        if (data.progress !== undefined) atualizarProgresso(data.progress);
+        if (data.collected !== undefined) atualizarColetados(data.collected);
+        if (data.tempo_estimado) atualizarTempoRestante(data.tempo_estimado);
+        
+        // Atualizar estatísticas se disponíveis
+        if (data.estatisticas) {
+            atualizarEstatisticas(data.estatisticas);
+        }
+        
+        // Atualizar atividade atual
+        if (data.categoria || data.produto_nome) {
+            const categoria = data.categoria || currentCategory.textContent;
+            const produto = data.produto_nome || currentProduct.textContent;
+            let fase = currentPhase.textContent;
+            
+            if (data.type === 'system') {
+                if (data.message.includes('FASE 1')) {
+                    fase = 'Coletando URLs';
+                } else if (data.message.includes('FASE 2')) {
+                    fase = 'Extraindo Dados';
+                }
+            }
+            
+            atualizarAtividadeAtual(categoria, produto, fase);
+        }
+        
+        // Atualizar status baseado no tipo de mensagem
+        if (data.type === 'system') {
+            if (data.message.includes('Iniciando')) {
+                atualizarStatus('Inicializando');
+            } else if (data.message.includes('FASE 1')) {
+                atualizarStatus('Coletando URLs');
+            } else if (data.message.includes('FASE 2')) {
+                atualizarStatus('Extraindo Dados');
+            }
+        }
+
+        // Verificar se a coleta foi finalizada
+        if (data.message.includes('Coleta finalizada') || 
+            data.message.includes('🎉') ||
+            data.message.includes('Sistema pronto')) {
+            // Animação especial de conclusão
+            atualizarProgresso(100);
+            setTimeout(() => {
+                // Efeito de celebração
+                progressDisplay.parentElement.classList.add('celebration-effect');
+                setTimeout(() => {
+                    progressDisplay.parentElement.classList.remove('celebration-effect');
+                }, 2000);
+            }, 100);
+            
+            // Finalizar coleta após animação
+            setTimeout(() => {
+                finalizarColeta();
+            }, 1000);
+        } else if (data.message.includes('Coleta cancelada') || 
+                   data.message.includes('interrompida')) {
             finalizarColeta();
-            // Adiciona mensagem de sucesso
-            const successEntry = document.createElement('div');
-            successEntry.className = 'log-entry success';
-            successEntry.innerHTML = `<span class="timestamp">[${new Date().toLocaleTimeString()}]</span> ✅ Todos os dados foram coletados com sucesso!`;
-            logContent.appendChild(successEntry);
-            logContent.scrollTop = logContent.scrollHeight;
-        } else if (data.message.includes('Coleta cancelada')) {
-            finalizarColeta();
+            atualizarStatus('Cancelado');
         }
     });
 
-    // Função para iniciar a coleta
-    function iniciarColeta() {
-        coletaEmAndamento = true;
-        iniciarBtn.style.display = 'none';
-        cancelarBtn.style.display = 'inline-block';
-        categoriasSelect.disabled = true;
-        logContainer.style.display = 'block';
-        logContent.innerHTML = ''; // Limpa logs anteriores
-        ultimaMensagem = ''; // Reseta o controle de mensagens duplicadas
-    }
-
-    // Função para finalizar a coleta
-    function finalizarColeta() {
-        coletaEmAndamento = false;
-        iniciarBtn.style.display = 'inline-block';
-        cancelarBtn.style.display = 'none';
-        categoriasSelect.disabled = false;
-    }
-
-    // Validação e envio do formulário
+    // Evento de submit do formulário
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
         const selectedCategories = Array.from(categoriasSelect.selectedOptions);
         if (selectedCategories.length === 0) {
-            alert('Por favor, selecione pelo menos uma categoria.');
+            adicionarLog('Por favor, selecione pelo menos uma categoria', 'error');
             return;
         }
 
-        // Primeiro inicia a coleta (UI)
         iniciarColeta();
 
         try {
-            // Cria um FormData com os dados do formulário
             const formData = new FormData();
-            formData.append('modo', form.querySelector('select[name="modo"]').value);
-            
-            // Adiciona cada categoria selecionada
+            formData.append('modo', document.getElementById('modo').value);
             selectedCategories.forEach(option => {
                 formData.append('categorias', option.value);
             });
@@ -198,129 +983,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
         } catch (error) {
             console.error('Erro:', error);
-            const logEntry = document.createElement('div');
-            logEntry.className = 'log-entry error';
-            logEntry.innerHTML = `<span class="timestamp">[${new Date().toLocaleTimeString()}]</span> Erro: ${error.message}`;
-            logContent.appendChild(logEntry);
+            adicionarLog(`Erro ao iniciar coleta: ${error.message}`, 'error');
             finalizarColeta();
+            atualizarStatus('Erro');
         }
     });
 
-    // Cancelamento da coleta
+    // Evento de cancelamento
     cancelarBtn.addEventListener('click', async function() {
-        if (coletaEmAndamento) {
-            try {
-                // Desabilita o botão durante o cancelamento
-                cancelarBtn.disabled = true;
-                cancelarBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelando...';
+        if (!coletaEmAndamento) return;
 
-                const response = await fetch('/cancelar-coleta', {
-                    method: 'POST'
-                });
+        try {
+            const response = await fetch('/cancelar_coleta', {
+                method: 'POST'
+            });
 
-                if (!response.ok) {
-                    const result = await response.json();
-                    throw new Error(result.detail || 'Erro ao cancelar coleta');
-                }
-
-                // Aguarda a resposta do servidor
-                const result = await response.json();
-                console.log('Coleta cancelada:', result);
-
-                const logEntry = document.createElement('div');
-                logEntry.className = 'log-entry warning';
-                logEntry.innerHTML = `<span class="timestamp">[${new Date().toLocaleTimeString()}]</span> Cancelando coleta...`;
-                logContent.appendChild(logEntry);
-
-            } catch (error) {
-                console.error('Erro ao cancelar:', error);
-                const logEntry = document.createElement('div');
-                logEntry.className = 'log-entry error';
-                logEntry.innerHTML = `<span class="timestamp">[${new Date().toLocaleTimeString()}]</span> Erro ao cancelar: ${error.message}`;
-                logContent.appendChild(logEntry);
-            } finally {
-                // Reabilita o botão
-                cancelarBtn.disabled = false;
-                cancelarBtn.innerHTML = '<i class="fas fa-stop"></i> Cancelar Coleta';
+            if (response.ok) {
+                adicionarLog('Solicitação de cancelamento enviada', 'warning');
+            } else {
+                adicionarLog('Erro ao cancelar coleta', 'error');
             }
+        } catch (error) {
+            console.error('Erro ao cancelar:', error);
+            adicionarLog('Erro ao cancelar coleta', 'error');
         }
     });
 });
 </script>
-
-<style>
-.button-group {
-    display: flex;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.btn--danger {
-    background-color: #dc3545;
-    color: white;
-}
-
-.btn--danger:hover {
-    background-color: #c82333;
-}
-
-.log-entry {
-    padding: 8px;
-    margin: 4px 0;
-    border-radius: 4px;
-    font-family: monospace;
-}
-
-.success {
-    color: #98c379;
-    background-color: rgba(152, 195, 121, 0.1);
-    border: 1px solid rgba(152, 195, 121, 0.3);
-}
-
-.info {
-    color: #61afef;
-    background-color: rgba(97, 175, 239, 0.1);
-    border: 1px solid rgba(97, 175, 239, 0.3);
-}
-
-.warning {
-    color: #e5c07b;
-    background-color: rgba(229, 192, 123, 0.1);
-    border: 1px solid rgba(229, 192, 123, 0.3);
-}
-
-.error {
-    color: #e06c75;
-    background-color: rgba(224, 108, 117, 0.1);
-    border: 1px solid rgba(224, 108, 117, 0.3);
-}
-
-.system {
-    font-style: italic;
-    opacity: 0.9;
-    border-left: 3px solid #abb2bf;
-    margin-left: -0.5rem;
-    padding-left: 0.5rem;
-}
-
-.timestamp {
-    color: #abb2bf;
-    font-size: 0.9em;
-    margin-right: 0.5rem;
-    opacity: 0.8;
-}
-
-#log-container {
-    border: 1px solid #3e4451;
-    border-radius: 6px;
-    padding: 1rem;
-    margin-top: 1rem;
-    max-height: 400px;
-    overflow-y: auto;
-}
-
-#log-content {
-    font-family: 'Consolas', 'Monaco', monospace;
-}
-</style>
 {% endblock %} 

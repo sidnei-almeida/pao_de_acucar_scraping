@@ -1,4 +1,4 @@
-from selenium import webdriver
+from selenium import webdriver                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
@@ -68,7 +68,7 @@ class Scraper:
         
         return texto
 
-    def extrair_dados_nutricionais(self, url):
+    def extrair_dados_nutricionais(self, url, categoria=None):
         """Extrai dados nutricionais de um produto"""
         if self.cancelado:
             logger.warning("Operação cancelada")
@@ -227,18 +227,19 @@ class Scraper:
                 
                 # Cria DataFrame com os dados já no formato final
                 df_novo = pd.DataFrame([{
-                    'NOME_PRODUTO': resultado['nome'],
-                    'URL': resultado['url'],
-                    'PORCAO (g)': resultado['porcao'],
-                    'CALORIAS (kcal)': resultado['calorias'],
-                    'CARBOIDRATOS (g)': resultado['carboidratos'],
-                    'PROTEINAS (g)': resultado['proteinas'],
-                    'GORDURAS_TOTAIS (g)': resultado['gorduras'],
-                    'GORDURAS_SATURADAS (g)': resultado['gorduras_saturadas'],
-                    'FIBRAS (g)': resultado['fibras'],
-                    'ACUCARES (g)': resultado['acucares'],
-                    'SODIO (mg)': resultado['sodio'],
-                    'data_coleta': data_coleta
+                    'nome': resultado['nome'],
+                    'url': resultado['url'],
+                    'porcao': resultado['porcao'],
+                    'calorias': resultado['calorias'],
+                    'carboidratos': resultado['carboidratos'],
+                    'proteinas': resultado['proteinas'],
+                    'gorduras': resultado['gorduras'],
+                    'gorduras_saturadas': resultado['gorduras_saturadas'],
+                    'fibras': resultado['fibras'],
+                    'acucares': resultado['acucares'],
+                    'sodio': resultado['sodio'],
+                    'data_coleta': data_coleta,
+                    'categoria': categoria if categoria else 'Não especificada'
                 }])
                 
                 # Verifica se o arquivo já existe
