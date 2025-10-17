@@ -366,40 +366,13 @@ class Scraper:
                     })
                     return None
                 
-                # Adiciona data de coleta
+                # Adiciona data de coleta, categoria e código ao resultado
                 data_coleta = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                resultado['data_coleta'] = data_coleta
+                resultado['categoria'] = categoria if categoria else 'Não especificada'
+                resultado['codigo'] = codigo_barras if codigo_barras else ''
                 
-                # Cria DataFrame com os dados já no formato final
-                df_novo = pd.DataFrame([{
-                    'nome': resultado['nome'],
-                    'url': resultado['url'],
-                    'porcao': resultado['porcao'],
-                    'calorias': resultado['calorias'],
-                    'carboidratos': resultado['carboidratos'],
-                    'proteinas': resultado['proteinas'],
-                    'gorduras': resultado['gorduras'],
-                    'gorduras_saturadas': resultado['gorduras_saturadas'],
-                    'fibras': resultado['fibras'],
-                    'acucares': resultado['acucares'],
-                    'sodio': resultado['sodio'],
-                    'data_coleta': data_coleta,
-                    'categoria': categoria if categoria else 'Não especificada',
-                    'codigo': codigo_barras if codigo_barras else ''
-                }])
-                
-                # Verifica se o arquivo já existe
-                if os.path.exists('dados_nutricionais.csv'):
-                    # Lê o CSV existente
-                    df_existente = pd.read_csv('dados_nutricionais.csv')
-                    
-                    # Apenas adiciona o novo registro (não substitui)
-                    df_final = pd.concat([df_existente, df_novo], ignore_index=True)
-                else:
-                    df_final = df_novo
-                
-                # Salva no CSV
-                df_final.to_csv('dados_nutricionais.csv', index=False)
-                
+                # Retorna apenas os dados (salvamento será feito pelo chamador)
                 return resultado
             else:
                 logger.error(f"Não foi possível extrair dados da URL {url}")
@@ -444,8 +417,7 @@ class Scraper:
                     # Coleta os dados nutricionais
                     dados = self.extrair_dados_nutricionais(url)
                     if dados:
-                        dados['URL'] = url
-                        dados['NOME_PRODUTO'] = nome
+                        # Não precisa adicionar URL e nome, já vêm do extrair_dados_nutricionais
                         dados_coletados.append(dados)
                         
                 except Exception as e:
@@ -459,9 +431,38 @@ class Scraper:
             if dados_coletados:
                 df_dados = pd.DataFrame(dados_coletados)
                 
-                # Salva os dados
-                modo_arquivo = 'a' if os.path.exists('dados_nutricionais.csv') else 'w'
-                df_dados.to_csv('dados_nutricionais.csv', mode=modo_arquivo, header=(modo_arquivo == 'w'), index=False)
+                # Cria pasta dados_coletados se não existir
+                os.makedirs('dados_coletados', exist_ok=True)
+                
+                # Define o caminho do arquivo
+                arquivo_csv = 'dados_coletados/dados_nutricionais.csv'
+                
+                # Define a ordem correta das colunas
+                colunas_ordenadas = [
+                    'nome', 'url', 'porcao', 'calorias', 'carboidratos', 
+                    'proteinas', 'gorduras', 'gorduras_saturadas', 'fibras', 
+                    'acucares', 'sodio', 'data_coleta', 'categoria', 'codigo'
+                ]
+                
+                # Garante que todas as colunas existam e estejam na ordem correta
+                for col in colunas_ordenadas:
+                    if col not in df_dados.columns:
+                        df_dados[col] = ''
+                
+                df_dados = df_dados[colunas_ordenadas]
+                
+                # Verifica se o arquivo já existe
+                if os.path.exists(arquivo_csv):
+                    # Lê o arquivo existente
+                    df_existente = pd.read_csv(arquivo_csv)
+                    
+                    # Concatena os novos dados
+                    df_final = pd.concat([df_existente, df_dados], ignore_index=True)
+                else:
+                    df_final = df_dados
+                
+                # Salva o arquivo completo (sobrescrevendo para evitar problemas de append)
+                df_final.to_csv(arquivo_csv, index=False)
                 
                 logging.info(f"Dados coletados com sucesso para {len(dados_coletados)} produtos")
             else:

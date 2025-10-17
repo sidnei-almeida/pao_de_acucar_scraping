@@ -539,7 +539,7 @@ class PaoDeAcucarCLI:
                 print(f"{Cores.CIANO}🗑️ Arquivo temporário removido{Cores.RESET}")
 
             # Verifica se dados foram salvos
-            arquivo_saida = "dados_nutricionais.csv"
+            arquivo_saida = "dados_coletados/dados_nutricionais.csv"
             if os.path.exists(arquivo_saida):
                 df_resultado = pd.read_csv(arquivo_saida)
                 produtos_coletados = len(df_resultado)
@@ -559,7 +559,7 @@ class PaoDeAcucarCLI:
         print(f"\n{Cores.CIANO}{Cores.BOLD}🔍 CONSULTA DE DADOS NUTRICIONAIS{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-        arquivo_dados = "dados_nutricionais.csv"
+        arquivo_dados = "dados_coletados/dados_nutricionais.csv"
 
         if not os.path.exists(arquivo_dados):
             print(f"{Cores.VERMELHO}❌ Nenhum dado coletado ainda. Execute coleta primeiro.{Cores.RESET}")
@@ -679,7 +679,7 @@ class PaoDeAcucarCLI:
         print(f"\n{Cores.CIANO}{Cores.BOLD}📈 ESTATÍSTICAS DOS DADOS COLETADOS{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-        arquivo_dados = "dados_nutricionais.csv"
+        arquivo_dados = "dados_coletados/dados_nutricionais.csv"
 
         if not os.path.exists(arquivo_dados):
             print(f"{Cores.VERMELHO}❌ Nenhum dado coletado ainda. Execute coleta primeiro.{Cores.RESET}")
