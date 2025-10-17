@@ -1,4 +1,4 @@
-# 🛒 Pão de Açúcar Scraping
+# 🛒 Pão de Açúcar Scraping - CLI
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![Selenium](https://img.shields.io/badge/selenium-4.0%2B-orange.svg)](https://www.selenium.dev/)
@@ -6,62 +6,66 @@
 
 ## 📝 Descrição
 
-O Pão de Açúcar Scraping é uma aplicação web desenvolvida para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza Selenium para navegar pelo site e extrair informações detalhadas sobre os produtos, apresentando uma interface web amigável para controle e visualização dos dados.
+O Pão de Açúcar Scraping CLI é uma ferramenta de linha de comando desenvolvida para coletar dados nutricionais de produtos do site do Pão de Açúcar. O projeto utiliza Selenium para navegar pelo site e extrair informações detalhadas sobre os produtos, oferecendo comandos simples e diretos para coleta, consulta e exportação de dados.
 
 ## 🚀 Como Usar
 
 ### 1. Requisitos do Sistema
 
-- Python 3.11 ou superior
+- Python 3.8 ou superior
 - Google Chrome ou Chromium
 - Conexão com a Internet
 
 ### 2. Instalação
 
 ```bash
-# Criar e ativar ambiente virtual
-python -m venv venv
-
-# No Windows:
-.\venv\Scripts\activate
-
-# No Linux/macOS:
-source venv/bin/activate
-
 # Instalar dependências
 pip install -r requirements.txt
 ```
 
-### 3. Iniciando a Aplicação
+### 3. Comandos Disponíveis
 
-1. Com o ambiente virtual ativado, execute:
+#### Listar Categorias
 ```bash
-python api.py
+python main.py listar-categorias
+```
+Mostra todas as 13 categorias disponíveis para coleta.
+
+#### Coletar Dados
+```bash
+# Modo teste (coleta limitada)
+python main.py coletar --categorias 1 2 3 --teste
+
+# Modo completo (coleta ilimitada)
+python main.py coletar --categorias 1 2 3 4 5
 ```
 
-2. Você verá uma mensagem no terminal com a URL local, algo como:
+#### Consultar Dados
+```bash
+# Consultar todos os dados
+python main.py consultar
+
+# Filtrar por categoria
+python main.py consultar --categoria "Hortifruti"
+
+# Filtrar por nome do produto
+python main.py consultar --nome "leite"
 ```
-INFO:     Started server process [12345]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-INFO:     Uvicorn running on http://0.0.0.0:8000
+
+#### Exportar para Excel
+```bash
+# Exportar todos os dados
+python main.py exportar --formato excel
+
+# Exportar dados filtrados
+python main.py exportar --categoria "Doces" --formato excel
 ```
 
-3. Copie a URL que aparece (ex: http://0.0.0.0:8000 ou http://127.0.0.1:8000) e cole no seu navegador
-
-### 4. Usando a Interface Web
-
-1. Na página inicial, você verá três opções:
-   - **Coletar Dados**: Para iniciar uma nova coleta
-   - **Consultar Dados**: Para ver os dados já coletados
-   - **Baixar Excel**: Para baixar os dados em formato Excel
-
-2. Para coletar dados:
-   - Clique em "Coletar Dados"
-   - Selecione as categorias desejadas
-   - Escolha o modo de coleta (teste ou completo)
-   - Clique em "Iniciar Coleta"
-   - Acompanhe o progresso em tempo real
+#### Ver Estatísticas
+```bash
+python main.py estatisticas
+```
+Mostra estatísticas dos dados coletados.
 
 ## 📊 Dados Coletados
 
@@ -70,7 +74,7 @@ Para cada produto, são coletadas as seguintes informações:
 - URL do produto
 - Categoria
 - Porção (g/ml)
-- Calorias
+- Calorias (kcal)
 - Carboidratos (g)
 - Proteínas (g)
 - Gorduras totais (g)
@@ -78,14 +82,65 @@ Para cada produto, são coletadas as seguintes informações:
 - Fibras (g)
 - Açúcares (g)
 - Sódio (mg)
+- Data da coleta
+- **Código de Barras (GTIN/EAN)** - Código de identificação do produto
+
+## 🛒 Categorias Disponíveis
+
+### Alimentos - Categorias Específicas (1-13)
+1. **🛒 Açougue** - Carnes bovinas, suínas, aves e derivados
+2. **🧊 Alimentos Congelados** - Refeições prontas, vegetais congelados, pizzas
+3. **🥛 Alimentos Refrigerados** - Laticínios, frios, iogurtes, queijos
+4. **🏠 Básicos da Despensa** - Arroz, feijão, açúcar, sal, óleo
+5. **🌾 Cereais** - Cereais matinais, granolas, barras de cereal
+6. **📦 Complemento da Despensa** - Molhos, temperos, especiarias, conservas
+7. **🍰 Doces e Sobremesas** - Chocolates, balas, bolos, pudins, gelatinas
+8. **🥬 Hortifruti** - Frutas, verduras, legumes frescos
+9. **🧂 Mercearia Salgada** - Massas, enlatados, sopas, caldos
+10. **🍞 Padaria** - Pães, bolos, tortas, biscoitos
+11. **🐟 Peixaria** - Peixes, frutos do mar, produtos marinhos
+12. **🍗 Rotisserie** - Frango assado, carnes preparadas
+13. **🥨 Salgadinhos e Aperitivos** - Chips, amendoins, snacks diversos
+
+### Novas Categorias Adicionadas (14-16)
+14. **🍽️ Alimentos (Geral)** - Todos os produtos de alimentos em uma categoria
+15. **🥤 Bebidas** - Vinhos, cervejas, refrigerantes, sucos, águas
+16. **🇧🇷 Caras do Brasil** - Produtos brasileiros selecionados e artesanais
 
 ## ⚠️ Observações Importantes
 
 - A coleta pode levar algumas horas dependendo da quantidade de produtos
-- Mantenha a janela do navegador aberta durante a coleta
-- Uma conexão estável com a internet é necessária
+- Mantenha uma conexão estável com a internet
 - Os dados são salvos automaticamente em formato CSV na pasta do repositório
-- É possível cancelar a coleta a qualquer momento
+- É possível interromper a coleta com Ctrl+C
+- Use o modo teste (`--teste`) para validações rápidas
+- **🎯 Filtragem inteligente:** Produtos sem tabela nutricional (fraldas, limpeza, etc.) são automaticamente ignorados
+- **⚡ Otimização:** A filtragem reduz o tempo de coleta em 30-65% em categorias mistas
+- **📊 Qualidade:** Apenas produtos com dados nutricionais válidos são salvos
+- **💾 Sistema de checkpoint:** Salvamento automático a cada 1.000 produtos coletados
+- **🔄 Recuperação de crashes:** Retoma automaticamente de onde parou em caso de erros
+- **🧠 Gestão de memória:** Reinício periódico do navegador para evitar crashes
+
+## 📁 Estrutura de Arquivos
+
+```
+dados_coletados/          # Diretório criado automaticamente
+├── dados_nutricionais.csv    # Arquivo principal com todos os dados
+├── consulta_YYYYMMDD_HHMMSS.csv  # Arquivos de consultas filtradas
+├── dados_nutricionais_YYYYMMDD_HHMMSS.xlsx  # Arquivos Excel exportados
+└── urls_checkpoint_*.json    # Checkpoints temporários (removidos após sucesso)
+```
+
+## 🔄 Sistema de Checkpoint e Recuperação
+
+O sistema possui um mecanismo robusto de checkpoint que previne perda de dados:
+
+- **Salvamento automático:** A cada 1.000 produtos coletados
+- **Reinício periódico:** Navegador reinicia a cada 100 rolagens para liberar memória
+- **Recuperação automática:** Até 3 tentativas em caso de crashes
+- **Perda máxima:** Máximo de 1.000 produtos (contra 10.000+ sem checkpoint)
+
+Para mais detalhes, consulte: [SISTEMA_CHECKPOINT.md](SISTEMA_CHECKPOINT.md)
 
 ## 📞 Contato
 

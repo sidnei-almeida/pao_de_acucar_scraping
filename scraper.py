@@ -19,6 +19,7 @@ class Scraper:
     def __init__(self):
         self.driver = None
         self.cancelado = False
+        self.produtos_ignorados = []  # Lista de produtos sem tabela nutricional
         self.configurar_driver()
     
     def cancelar(self):
@@ -37,6 +38,21 @@ class Scraper:
         if self.driver:
             self.driver.quit()
             self.driver = None
+
+    def get_estatisticas_ignorados(self):
+        """Retorna estatísticas de produtos ignorados durante a coleta.
+        
+        Returns:
+            dict: Estatísticas com total e lista de produtos ignorados
+        """
+        return {
+            'total': len(self.produtos_ignorados),
+            'produtos': self.produtos_ignorados
+        }
+    
+    def limpar_estatisticas(self):
+        """Limpa a lista de produtos ignorados."""
+        self.produtos_ignorados = []
 
     def extrair_nome_da_url(self, url):
         """Extrai o nome do produto da URL."""
@@ -68,6 +84,94 @@ class Scraper:
         
         return texto
 
+    def extrair_codigo_barras(self, html_source):
+        """Extrai o código de barras (GTIN/EAN) do HTML do produto.
+        
+        Tenta primeiro via regex (mais rápido), depois via parser JSON-LD (mais robusto).
+        
+        Args:
+            html_source (str): Código HTML completo da página
+            
+        Returns:
+            str: Código de barras encontrado ou None se não encontrado
+        """
+        import json
+        
+        # Método 1: Regex - busca rápida por gtin8 ou ean
+        try:
+            match_gtin = re.search(r'"gtin8"\s*:\s*"(\d+)"', html_source)
+            if match_gtin:
+                codigo = match_gtin.group(1)
+                logger.debug(f"Código de barras encontrado via regex (gtin8): {codigo}")
+                return codigo
+            
+            match_ean = re.search(r'"ean"\s*:\s*"(\d+)"', html_source)
+            if match_ean:
+                codigo = match_ean.group(1)
+                logger.debug(f"Código de barras encontrado via regex (ean): {codigo}")
+                return codigo
+        except Exception as e:
+            logger.warning(f"Erro ao extrair código via regex: {e}")
+        
+        # Método 2: Parser JSON-LD (fallback)
+        try:
+            from bs4 import BeautifulSoup
+            soup = BeautifulSoup(html_source, 'html.parser')
+            scripts = soup.find_all('script', type='application/ld+json')
+            
+            for script in scripts:
+                try:
+                    if script.string:
+                        data = json.loads(script.string)
+                        if data.get('@type') == 'Product':
+                            gtin = data.get('gtin8') or data.get('ean')
+                            if gtin:
+                                logger.debug(f"Código de barras encontrado via JSON-LD: {gtin}")
+                                return gtin
+                except json.JSONDecodeError:
+                    continue
+                except Exception:
+                    continue
+        except Exception as e:
+            logger.warning(f"Erro ao extrair código via JSON-LD: {e}")
+        
+        return None
+
+    def verificar_tabela_nutricional(self, html_source):
+        """Verifica se o produto possui tabela nutricional.
+        
+        Faz uma verificação rápida no HTML para detectar presença de informações
+        nutricionais antes de processar o produto completamente.
+        
+        Args:
+            html_source (str): Código HTML completo da página
+            
+        Returns:
+            bool: True se encontrar indicações de tabela nutricional, False caso contrário
+        """
+        # Lista de palavras-chave que indicam presença de tabela nutricional
+        keywords = [
+            'tabela nutricional',
+            'informação nutricional',
+            'informacao nutricional',
+            'valores nutricionais',
+            'valor energético',
+            'valor energetico',
+            'porção',
+            'porcao'
+        ]
+        
+        html_lower = html_source.lower()
+        
+        # Se encontrar qualquer palavra-chave, provável que tenha tabela
+        for keyword in keywords:
+            if keyword in html_lower:
+                logger.debug(f"Palavra-chave nutricional encontrada: '{keyword}'")
+                return True
+        
+        logger.debug("Nenhuma palavra-chave nutricional encontrada no HTML")
+        return False
+
     def extrair_dados_nutricionais(self, url, categoria=None):
         """Extrai dados nutricionais de um produto"""
         if self.cancelado:
@@ -81,6 +185,29 @@ class Scraper:
             logger.info(f"Processando URL: {url}")
             self.driver.get(url)
             time.sleep(10)  # Espera a página carregar
+
+            # Captura o HTML da página
+            html_source = self.driver.page_source
+
+            # VERIFICAÇÃO PRÉVIA - Ignora produtos sem tabela nutricional
+            if not self.verificar_tabela_nutricional(html_source):
+                nome_produto = self.extrair_nome_da_url(url)
+                logger.warning(f"Produto sem tabela nutricional detectado - IGNORADO: {nome_produto}")
+                self.produtos_ignorados.append({
+                    'url': url,
+                    'nome': nome_produto,
+                    'motivo': 'Sem palavras-chave nutricionais no HTML',
+                    'categoria': categoria if categoria else 'Não especificada'
+                })
+                return None
+
+            # Extrai código de barras do HTML
+            codigo_barras = self.extrair_codigo_barras(html_source)
+            
+            if codigo_barras:
+                logger.info(f"Código de barras encontrado: {codigo_barras}")
+            else:
+                logger.warning(f"Código de barras não encontrado para: {url}")
 
             # Executa o JavaScript para extrair os dados
             resultado = self.driver.execute_script("""
@@ -222,6 +349,23 @@ class Scraper:
                             'gorduras_saturadas', 'fibras', 'acucares', 'sodio']:
                     resultado[chave] = float(resultado[chave])
                 
+                # VALIDAÇÃO SECUNDÁRIA - Verifica se há dados nutricionais válidos
+                tem_dados_nutricionais = (
+                    resultado['calorias'] > 0 or
+                    resultado['proteinas'] > 0 or
+                    resultado['carboidratos'] > 0
+                )
+                
+                if not tem_dados_nutricionais:
+                    logger.warning(f"Produto sem dados nutricionais válidos (valores zerados) - IGNORADO: {resultado['nome']}")
+                    self.produtos_ignorados.append({
+                        'url': url,
+                        'nome': resultado['nome'],
+                        'motivo': 'Valores nutricionais todos zerados',
+                        'categoria': categoria if categoria else 'Não especificada'
+                    })
+                    return None
+                
                 # Adiciona data de coleta
                 data_coleta = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 
@@ -239,7 +383,8 @@ class Scraper:
                     'acucares': resultado['acucares'],
                     'sodio': resultado['sodio'],
                     'data_coleta': data_coleta,
-                    'categoria': categoria if categoria else 'Não especificada'
+                    'categoria': categoria if categoria else 'Não especificada',
+                    'codigo': codigo_barras if codigo_barras else ''
                 }])
                 
                 # Verifica se o arquivo já existe
