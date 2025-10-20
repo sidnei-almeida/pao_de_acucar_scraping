@@ -40,3 +40,4 @@ env/
 # Ambiente
 .env
 .env.local 
+*.pyc
