@@ -137,6 +137,87 @@ class Scraper:
         
         return None
 
+    def extrair_marca(self):
+        """Extrai a marca do produto do dropdown 'Característica Geral'.
+        
+        Similar ao dropdown da tabela nutricional, precisa clicar para expandir
+        e então buscar o campo 'Marca' dentro dele.
+        
+        Returns:
+            str: Marca do produto ou string vazia se não encontrado
+        """
+        try:
+            # Tenta encontrar e clicar no dropdown "Característica Geral"
+            try:
+                # Aguarda até que o dropdown esteja presente
+                wait = WebDriverWait(self.driver, 10)
+                dropdown = wait.until(EC.presence_of_element_located((
+                    By.XPATH, 
+                    "//p[contains(text(), 'Característica Geral')]/parent::div"
+                )))
+                
+                # Clica no dropdown para expandir
+                self.driver.execute_script("arguments[0].click();", dropdown)
+                time.sleep(1)  # Aguarda a expansão
+                
+                logger.debug("Dropdown 'Característica Geral' expandido com sucesso")
+            except Exception as e:
+                logger.debug(f"Não foi possível expandir o dropdown 'Característica Geral': {e}")
+                return ''
+            
+            # Busca o campo "Marca" usando JavaScript
+            marca = self.driver.execute_script("""
+                // Busca todos os elementos que contêm o texto "Marca"
+                const elementos = document.querySelectorAll('p, td, th, span, div');
+                
+                for (let i = 0; i < elementos.length; i++) {
+                    const texto = elementos[i].textContent.trim();
+                    
+                    // Se encontrar o label "Marca"
+                    if (texto === 'Marca' && elementos[i].getAttribute('font-weight') === 'bold') {
+                        // Procura o próximo elemento td que contém o valor
+                        let proximoElemento = elementos[i].closest('tr');
+                        if (proximoElemento) {
+                            const tdValor = proximoElemento.querySelector('td.Description-sc-em9qim-3');
+                            if (tdValor) {
+                                const pValor = tdValor.querySelector('p');
+                                if (pValor) {
+                                    return pValor.textContent.trim();
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Método alternativo: busca por estrutura de tabela
+                const tabelas = document.querySelectorAll('table');
+                for (let tabela of tabelas) {
+                    const linhas = tabela.querySelectorAll('tr');
+                    for (let linha of linhas) {
+                        const colunas = linha.querySelectorAll('td, th');
+                        if (colunas.length >= 2) {
+                            const textoColuna = colunas[0].textContent.trim();
+                            if (textoColuna.toLowerCase() === 'marca') {
+                                return colunas[1].textContent.trim();
+                            }
+                        }
+                    }
+                }
+                
+                return '';
+            """)
+            
+            if marca:
+                logger.info(f"Marca encontrada: {marca}")
+                return marca
+            else:
+                logger.warning("Marca não encontrada no dropdown 'Característica Geral'")
+                return ''
+                
+        except Exception as e:
+            logger.warning(f"Erro ao extrair marca: {e}")
+            return ''
+
     def verificar_tabela_nutricional(self, html_source):
         """Verifica se o produto possui tabela nutricional.
         
@@ -208,6 +289,14 @@ class Scraper:
                 logger.info(f"Código de barras encontrado: {codigo_barras}")
             else:
                 logger.warning(f"Código de barras não encontrado para: {url}")
+
+            # Extrai a marca do produto
+            marca = self.extrair_marca()
+            
+            if marca:
+                logger.info(f"Marca encontrada: {marca}")
+            else:
+                logger.warning(f"Marca não encontrada para: {url}")
 
             # Executa o JavaScript para extrair os dados
             resultado = self.driver.execute_script("""
@@ -366,11 +455,12 @@ class Scraper:
                     })
                     return None
                 
-                # Adiciona data de coleta, categoria e código ao resultado
+                # Adiciona data de coleta, categoria, código e marca ao resultado
                 data_coleta = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 resultado['data_coleta'] = data_coleta
                 resultado['categoria'] = categoria if categoria else 'Não especificada'
                 resultado['codigo'] = codigo_barras if codigo_barras else ''
+                resultado['marca'] = marca if marca else ''
                 
                 # Retorna apenas os dados (salvamento será feito pelo chamador)
                 return resultado
@@ -441,7 +531,7 @@ class Scraper:
                 colunas_ordenadas = [
                     'nome', 'url', 'porcao', 'calorias', 'carboidratos', 
                     'proteinas', 'gorduras', 'gorduras_saturadas', 'fibras', 
-                    'acucares', 'sodio', 'data_coleta', 'categoria', 'codigo'
+                    'acucares', 'sodio', 'data_coleta', 'categoria', 'codigo', 'marca'
                 ]
                 
                 # Garante que todas as colunas existam e estejam na ordem correta
