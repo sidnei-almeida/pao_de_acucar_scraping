@@ -112,6 +112,9 @@ def obter_escolha() -> str:
     except KeyboardInterrupt:
         print(f"\n\n{Cores.AMARELO}⚠️  Programa interrompido pelo usuário{Cores.RESET}")
         sys.exit(0)
+    except EOFError:
+        print(f"\n\n{Cores.AMARELO}⚠️  Entrada não disponível (modo não-interativo){Cores.RESET}")
+        sys.exit(0)
 
 def mostrar_sobre():
     """Exibe informações detalhadas sobre o programa"""
@@ -264,7 +267,11 @@ def limpar_dados_antigos():
 
 def pausar():
     """Pausa o programa aguardando input do usuário"""
-    input(f"\n{Cores.CIANO}⏯️  Pressione Enter para continuar...{Cores.RESET}")
+    try:
+        input(f"\n{Cores.CIANO}⏯️  Pressione Enter para continuar...{Cores.RESET}")
+    except EOFError:
+        print(f"\n{Cores.AMARELO}⏭️  Modo não-interativo - continuando automaticamente...{Cores.RESET}")
+        time.sleep(1)
 
 class PaoDeAcucarCLI:
     """CLI principal para coleta de dados nutricionais"""
@@ -314,7 +321,7 @@ class PaoDeAcucarCLI:
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
         for id_cat, info in self.categorias_disponiveis.items():
-            print(f"{Cores.AMARELO}{Cores.BOLD}[{id_cat:2d}]{Cores.RESET} {Cores.BRANCO}{info['nome']}{Cores.RESET}")
+            print(f"{Cores.AMARELO}{Cores.BOLD}[{int(id_cat):2d}]{Cores.RESET} {Cores.BRANCO}{info['nome']}{Cores.RESET}")
             print(f"     🔗 {Cores.CIANO}{info['url']}{Cores.RESET}")
             print()
 
@@ -674,6 +681,18 @@ class PaoDeAcucarCLI:
         except Exception as e:
             print(f"{Cores.VERMELHO}❌ Erro ao exportar para Excel: {e}{Cores.RESET}")
 
+    def validar_categorias(self, categorias_ids: List[str]) -> List[Dict]:
+        """Valida e retorna as categorias selecionadas"""
+        categorias_validas = []
+        
+        for cat_id in categorias_ids:
+            if cat_id in self.categorias_disponiveis:
+                categorias_validas.append(self.categorias_disponiveis[cat_id])
+            else:
+                print(f"❌ Categoria inválida: {cat_id}")
+        
+        return categorias_validas
+
     def mostrar_estatisticas(self):
         """Mostra estatísticas detalhadas dos dados coletados"""
         print(f"\n{Cores.CIANO}{Cores.BOLD}📈 ESTATÍSTICAS DOS DADOS COLETADOS{Cores.RESET}")
@@ -994,4 +1013,4 @@ Exemplos de uso:
         return
 
 if __name__ == "__main__":
-    main()
+    main_cli()

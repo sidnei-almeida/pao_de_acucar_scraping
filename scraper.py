@@ -356,7 +356,8 @@ class Scraper:
                     const texto = elemento.textContent;
                     if (texto.toLowerCase().includes('porção') || texto.toLowerCase().includes('porcao')) {
                         console.log('Texto com porção:', texto);
-                        const match = texto.match(/[Pp]or[cç][aã]o\\s+(?:de\\s+)?(\\d+)\\s*(?:g|G|gr|GR|grama|gramas|GRAMAS)(?:\\s*[-]\\s*.*)?/);
+                        // Regex melhorado para capturar ML, gramas e outras unidades
+                        const match = texto.match(/[Pp]or[cç][aã]o\\s+(?:de\\s+)?(\\d+)\\s*(?:ml|ML|g|G|gr|GR|grama|gramas|GRAMAS|litro|litros|L|kg|KG|quilo|quilos)(?:\\s*[-]\\s*.*)?/);
                         if (match) {
                             porcao = match[1];
                             console.log('Porção encontrada:', porcao);

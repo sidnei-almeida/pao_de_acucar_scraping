@@ -32,10 +32,14 @@ env/
 *.swo
 
 # Logs e arquivos temporários
+logs/
 *.log
-*.csv
+urls_temp_*.csv
 *.sqlite
 *.db
+
+# Dados coletados (opcional - descomente se não quiser versionar)
+# dados_coletados/
 
 # Ambiente
 .env
