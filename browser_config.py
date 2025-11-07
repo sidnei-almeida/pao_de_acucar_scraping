@@ -3,21 +3,76 @@ import os
 import subprocess
 import shutil
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.core.os_manager import ChromeType
+from webdriver_manager.firefox import GeckoDriverManager
 from scraping_log import logger
+
+
+def build_options(browser_type, binary_location=None):
+    """Create Selenium options according to the browser type."""
+    if browser_type in {'chrome', 'chromium'}:
+        options = ChromeOptions()
+        chrome_flags = [
+            "--headless=new",
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--window-size=1920,1080",
+            "--disable-gpu",
+            "--disable-extensions",
+            "--disable-dev-tools",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--disable-blink-features=AutomationControlled",
+            "--disable-setuid-sandbox",
+            "--disable-software-rasterizer",
+            "--disable-background-timer-throttling",
+            "--disable-renderer-backgrounding",
+            "--disable-backgrounding-occluded-windows",
+            "--disable-features=TranslateUI",
+            "--disable-ipc-flooding-protection",
+            "--disable-hang-monitor",
+            "--disable-popup-blocking",
+            "--disable-prompt-on-repost",
+            "--disable-sync",
+            "--disable-web-security",
+            "--disable-features=VizDisplayCompositor",
+            "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+        ]
+        for flag in chrome_flags:
+            options.add_argument(flag)
+
+        if os.environ.get('RENDER') or os.environ.get('HEROKU'):
+            options.binary_location = "/usr/bin/google-chrome-stable"
+        elif binary_location:
+            options.binary_location = binary_location
+
+        return options
+
+    # Firefox defaults
+    options = FirefoxOptions()
+    options.headless = True
+    options.set_preference("dom.webnotifications.enabled", False)
+    options.set_preference("privacy.trackingprotection.enabled", True)
+    if binary_location:
+        options.binary_location = binary_location
+    return options
 
 def detectar_navegador():
     """
-    Detecta qual navegador está disponível no sistema.
-    Retorna o tipo do navegador e o caminho do binário.
+    Detect which browser is available on the host system.
+
+    Returns:
+        tuple[str, str | None]: Browser type and binary path (when found)
     """
     sistema = platform.system().lower()
-    logger.info(f"Sistema operacional detectado: {sistema}")
+    logger.info(f"Detected operating system: {sistema}")
     
-    # Caminhos dos navegadores por sistema operacional
+    # Browser lookup table per operating system
     navegadores = {
         'linux': {
             'chrome': [
@@ -35,6 +90,12 @@ def detectar_navegador():
                 '/usr/bin/chromium-bsu',
                 '/usr/local/bin/chromium',
                 '/var/lib/snapd/snap/bin/chromium'
+            ],
+            'firefox': [
+                '/usr/bin/firefox',
+                '/usr/local/bin/firefox',
+                '/var/lib/snapd/snap/bin/firefox',
+                '/opt/firefox/firefox'
             ]
         },
         'windows': {
@@ -48,6 +109,11 @@ def detectar_navegador():
                 r'C:\Program Files\Chromium\Application\chrome.exe',
                 r'C:\Program Files (x86)\Chromium\Application\chrome.exe',
                 r'C:\Users\{}\AppData\Local\Chromium\Application\chrome.exe'.format(os.environ.get('USERNAME', ''))
+            ],
+            'firefox': [
+                r'C:\Program Files\Mozilla Firefox\firefox.exe',
+                r'C:\Program Files (x86)\Mozilla Firefox\firefox.exe',
+                r'C:\Users\{}\AppData\Local\Mozilla Firefox\firefox.exe'.format(os.environ.get('USERNAME', ''))
             ]
         },
         'darwin': {  # macOS
@@ -57,49 +123,60 @@ def detectar_navegador():
             ],
             'chromium': [
                 '/Applications/Chromium.app/Contents/MacOS/Chromium'
+            ],
+            'firefox': [
+                '/Applications/Firefox.app/Contents/MacOS/firefox',
+                '/Applications/Firefox Developer Edition.app/Contents/MacOS/firefox'
             ]
         }
     }
     
-    # Se o sistema não for reconhecido, usa as configurações padrão
+    # Fall back to Chrome defaults when the OS is not recognized
     if sistema not in navegadores:
-        logger.warning(f"Sistema {sistema} não reconhecido. Usando configurações padrão do Chrome.")
+        logger.warning(f"Unsupported OS '{sistema}'. Falling back to default Chrome settings.")
         return 'chrome', None
     
-    # Verifica se é uma distribuição baseada em Arch/CachyOS
+    # Detect Arch/CachyOS-based distributions
     if sistema == 'linux':
         try:
             with open('/etc/os-release', 'r') as f:
                 os_info = f.read().lower()
                 if 'arch' in os_info or 'cachyos' in os_info:
-                    logger.info("Distribuição baseada em Arch/CachyOS detectada")
-                    # Tenta Chromium primeiro em distribuições Arch
+                    logger.info("Arch/CachyOS-based distribution detected")
+                    # Prefer Chromium first on Arch-based systems
                     for path in navegadores[sistema]['chromium']:
                         if os.path.exists(path):
-                            logger.info(f"Chromium encontrado em: {path}")
+                            logger.info(f"Chromium found at: {path}")
                             return 'chromium', path
         except Exception as e:
-            logger.warning(f"Erro ao verificar distribuição Linux: {str(e)}")
+            logger.warning(f"Failed to detect Linux distribution: {str(e)}")
     
-    # Tenta encontrar navegadores na ordem de preferência
-    for browser_type in ['chrome', 'chromium']:
+    # Search for browsers in the preferred order
+    for browser_type in ['chrome', 'chromium', 'firefox']:
         for path in navegadores[sistema][browser_type]:
             if os.path.exists(path):
-                logger.info(f"Navegador encontrado: {browser_type} em {path}")
+                logger.info(f"Browser found: {browser_type} at {path}")
                 return browser_type, path
     
-    # Se nenhum navegador for encontrado, usa o Chrome como padrão
-    logger.warning("Nenhum navegador encontrado. Usando Chrome como padrão.")
+    # Default to Chrome if nothing is discovered
+    logger.warning("No browser binary detected. Defaulting to Chrome.")
     return 'chrome', None
 
-def verificar_driver_sistema():
+def verificar_driver_sistema(browser_type):
     """
-    Verifica se existe um driver no sistema antes de baixar.
+    Check whether a compatible driver already exists on the machine.
     """
     sistema = platform.system().lower()
     drivers_possiveis = []
     
-    if sistema == 'windows':
+    if browser_type == 'firefox':
+        drivers_possiveis = [
+            'geckodriver',
+            '/usr/bin/geckodriver',
+            '/usr/local/bin/geckodriver',
+            'geckodriver.exe'
+        ]
+    elif sistema == 'windows':
         drivers_possiveis = ['chromedriver.exe']
     else:
         drivers_possiveis = [
@@ -111,134 +188,109 @@ def verificar_driver_sistema():
     for driver_path in drivers_possiveis:
         if shutil.which(driver_path) or os.path.exists(driver_path):
             try:
-                # Testa se o driver funciona
+                # Ensure the driver executable runs correctly
                 result = subprocess.run([driver_path, '--version'], 
                                       capture_output=True, text=True, timeout=5)
                 if result.returncode == 0:
-                    logger.info(f"Driver encontrado no sistema: {driver_path}")
-                    logger.info(f"Versão: {result.stdout.strip()}")
+                    logger.info(f"Driver located on the system: {driver_path}")
+                    logger.info(f"Version: {result.stdout.strip()}")
                     return driver_path
             except Exception as e:
-                logger.warning(f"Erro ao verificar driver {driver_path}: {e}")
+                logger.warning(f"Failed to validate driver {driver_path}: {e}")
                 continue
     
     return None
 
 def configurar_driver():
     """
-    Configura e retorna uma instância do navegador usando webdriver-manager.
-    Detecta automaticamente o navegador disponível e baixa o driver apropriado.
+    Configure and return a Selenium WebDriver instance.
+
+    Automatically detects the available browser and fetches the proper driver.
     """
-    logger.info("Iniciando configuração do WebDriver...")
+    logger.info("Starting WebDriver setup...")
     
-    # Detecta o navegador disponível
+    # Detect the available browser
     browser_type, binary_location = detectar_navegador()
     
-    # Verifica se existe driver no sistema
-    driver_sistema = verificar_driver_sistema()
+    # Check for existing system drivers
+    driver_sistema = verificar_driver_sistema(browser_type)
     
-    # Configura as opções do navegador
-    options = Options()
-    opcoes_comuns = [
-        "--headless=new",
-        "--no-sandbox",
-        "--disable-dev-shm-usage",
-        "--window-size=1920,1080",
-        "--disable-gpu",
-        "--disable-extensions",
-        "--disable-dev-tools",
-        "--no-first-run",
-        "--no-default-browser-check",
-        "--disable-blink-features=AutomationControlled",
-        "--disable-setuid-sandbox",
-        "--disable-software-rasterizer",
-        "--disable-background-timer-throttling",
-        "--disable-renderer-backgrounding",
-        "--disable-backgrounding-occluded-windows",
-        "--disable-features=TranslateUI",
-        "--disable-ipc-flooding-protection",
-        "--disable-hang-monitor",
-        "--disable-popup-blocking",
-        "--disable-prompt-on-repost",
-        "--disable-sync",
-        "--disable-web-security",
-        "--disable-features=VizDisplayCompositor",
-        "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
-    ]
-    
-    for opcao in opcoes_comuns:
-        options.add_argument(opcao)
-    
-    # Configurações específicas para ambiente de produção
-    if os.environ.get('RENDER') or os.environ.get('HEROKU'):
-        options.binary_location = "/usr/bin/google-chrome-stable"
-    elif binary_location:
-        options.binary_location = binary_location
-    
-    # Lista de tentativas para configurar o driver
+    # Possible setup strategies
     tentativas = []
     
-    # Tentativa 1: Usar driver do sistema se disponível (prioridade alta)
+    # Strategy 1: Use system driver when available
     if driver_sistema:
-        tentativas.append(('sistema', driver_sistema, 'chrome'))
+        tentativas.append(('sistema', driver_sistema, browser_type, binary_location))
     
-    # Tentativa 2: Forçar uso do chromedriver padrão do sistema  
-    tentativas.append(('sistema', '/usr/bin/chromedriver', 'chrome'))
+    # Strategy 2: Force default driver path on Linux for Chrome/Chromium
+    if browser_type in {'chrome', 'chromium'}:
+        tentativas.append(('sistema', '/usr/bin/chromedriver', 'chrome', binary_location))
     
-    # Tentativa 3: Usar webdriver-manager para o navegador detectado
-    tentativas.append(('webdriver-manager', None, browser_type))
+    # Strategy 3: Use webdriver-manager for the detected browser
+    tentativas.append(('webdriver-manager', None, browser_type, binary_location))
     
-    # Tentativa 4: Fallback para Chrome se não for Chrome
-    if browser_type != 'chrome':
-        tentativas.append(('webdriver-manager', None, 'chrome'))
+    # Strategy 4: Fallback to Chrome webdriver-manager when using Chromium or Firefox
+    if browser_type not in {'chrome'}:
+        tentativas.append(('webdriver-manager', None, 'chrome', None))
     
-    for i, (metodo, driver_path, tipo_navegador) in enumerate(tentativas, 1):
+    for i, (metodo, driver_path, tipo_navegador, binary_override) in enumerate(tentativas, 1):
         try:
-            logger.info(f"Tentativa {i}: {metodo} com {tipo_navegador}")
+            logger.info(f"Attempt {i}: {metodo} with {tipo_navegador}")
+            options = build_options(tipo_navegador, binary_override if tipo_navegador != 'chrome' else binary_override)
             
             if metodo == 'sistema':
-                # Verifica se o driver existe antes de tentar usar
+                # Ensure the driver exists before using it
                 if not os.path.exists(driver_path):
-                    raise Exception(f"Driver não encontrado em: {driver_path}")
+                    raise Exception(f"Driver not found at: {driver_path}")
                 
-                # Usa explicitamente o chromedriver do sistema
-                service = Service(executable_path=driver_path)
-                driver = webdriver.Chrome(service=service, options=options)
+                if tipo_navegador == 'firefox':
+                    service = FirefoxService(executable_path=driver_path)
+                    driver = webdriver.Firefox(service=service, options=options)
+                else:
+                    service = ChromeService(executable_path=driver_path)
+                    driver = webdriver.Chrome(service=service, options=options)
             else:  # webdriver-manager
-                # Tenta baixar e configurar o driver automaticamente
+                # Attempt to download and configure the driver automatically
                 try:
-                    # Primeiro tenta com o tipo específico detectado
-                    if tipo_navegador == 'chromium':
-                        chrome_type = ChromeType.CHROMIUM
+                    # Try the detected browser type first
+                    if tipo_navegador == 'firefox':
+                        driver_path = GeckoDriverManager().install()
+                        service = FirefoxService(executable_path=driver_path)
+                        driver = webdriver.Firefox(service=service, options=options)
                     else:
-                        chrome_type = ChromeType.GOOGLE
-                    
-                    # Configura o webdriver manager com cache
-                    driver_manager = ChromeDriverManager(chrome_type=chrome_type)
-                    driver_path = driver_manager.install()
-                    
-                    # Verifica se o driver baixado é válido
-                    if os.path.exists(driver_path):
-                        service = Service(executable_path=driver_path)
-                        driver = webdriver.Chrome(service=service, options=options)
-                    else:
-                        raise Exception(f"Driver baixado não encontrado em: {driver_path}")
+                        if tipo_navegador == 'chromium':
+                            chrome_type = ChromeType.CHROMIUM
+                        else:
+                            chrome_type = ChromeType.GOOGLE
+                        
+                        driver_manager = ChromeDriverManager(chrome_type=chrome_type)
+                        driver_path = driver_manager.install()
+                        
+                        if os.path.exists(driver_path):
+                            service = ChromeService(executable_path=driver_path)
+                            driver = webdriver.Chrome(service=service, options=options)
+                        else:
+                            raise Exception(f"Downloaded driver not found at: {driver_path}")
                         
                 except Exception as inner_e:
-                    # Se falhar, tenta com o tipo padrão
-                    logger.warning(f"Erro com {chrome_type}, tentando com GOOGLE: {inner_e}")
-                    driver_manager = ChromeDriverManager(chrome_type=ChromeType.GOOGLE)
-                    driver_path = driver_manager.install()
-                    service = Service(executable_path=driver_path)
-                    driver = webdriver.Chrome(service=service, options=options)
+                    # Fallback to the default Chrome driver
+                    if tipo_navegador == 'firefox':
+                        logger.warning(f"Driver setup failed with GeckoDriverManager: {inner_e}")
+                        raise
+                    else:
+                        logger.warning(f"Driver setup failed with {chrome_type}, retrying with GOOGLE: {inner_e}")
+                        driver_manager = ChromeDriverManager(chrome_type=ChromeType.GOOGLE)
+                        driver_path = driver_manager.install()
+                        service = ChromeService(executable_path=driver_path)
+                        driver = webdriver.Chrome(service=service, options=build_options('chrome', binary_override))
             
-            # Testa se o driver funciona
-            driver.get("data:text/html,<html><body><h1>Teste</h1></body></html>")
-            logger.info(f"WebDriver configurado com sucesso usando {metodo} com {tipo_navegador}")
+            # Smoke-test the driver
+            driver.get("data:text/html,<html><body><h1>Test</h1></body></html>")
+            logger.info(f"WebDriver configured successfully via {metodo} using {tipo_navegador}")
             return driver
             
         except Exception as e:
-            logger.warning(f"Falha na tentativa {i} ({metodo} com {tipo_navegador}): {str(e)}")
+            logger.warning(f"Setup attempt {i} failed ({metodo} with {tipo_navegador}): {str(e)}")
             try:
                 if 'driver' in locals():
                     driver.quit()
@@ -246,6 +298,6 @@ def configurar_driver():
                 pass
             continue
     
-    # Se todas as tentativas falharam
-    logger.error("Falha ao configurar WebDriver com todas as tentativas")
-    raise Exception("Não foi possível configurar o WebDriver. Verifique se Chrome ou Chromium estão instalados.") 
+    # Exhausted every strategy
+    logger.error("Unable to configure the WebDriver after all attempts")
+    raise Exception("Could not configure the WebDriver. Ensure Chrome/Chromium/Firefox is installed.")

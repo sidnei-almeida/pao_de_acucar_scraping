@@ -4,11 +4,11 @@
 """
 🛒 Pão de Açúcar Scraping - CLI
 ===============================
-Sistema profissional de coleta de dados nutricionais via linha de comando
+Professional command-line toolkit for collecting nutritional data
 
-✨ Interface elegante com cores, animações e experiência de usuário aprimorada
-🎯 Especializado na coleta automatizada de informações nutricionais
-📊 Geração de relatórios e estatísticas detalhadas
+✨ Polished interface with colors, animations, and elevated UX
+🎯 Tailored for automated nutritional intelligence gathering
+📊 Generates reports and detailed statistics
 """
 
 import argparse
@@ -22,13 +22,13 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
 
-# Importa módulos essenciais
+# Import core modules
 from url_collector import URLCollector
 from scraper import Scraper
 from scraping_log import logger
 
 # ============================================================================
-# 🎨 SISTEMA DE CORES ANSI PARA TERMINAL
+# 🎨 ANSI COLOR SYSTEM FOR TERMINAL OUTPUT
 # ============================================================================
 class Cores:
     RESET = '\033[0m'
@@ -42,30 +42,30 @@ class Cores:
     BRANCO = '\033[97m'
 
 # ============================================================================
-# 🛠️ FUNÇÕES UTILITÁRIAS
+# 🛠️ UTILITY FUNCTIONS
 # ============================================================================
 def limpar_terminal():
-    """Limpa o terminal"""
+    """Clear the terminal screen."""
     os.system('clear' if os.name == 'posix' else 'cls')
 
 def mostrar_banner():
-    """Exibe o banner principal do programa"""
+    """Render the CLI banner."""
     banner = f"""
 {Cores.CIANO}{Cores.BOLD}
 ╔══════════════════════════════════════════════════════════════════╗
 ║                🛒 PÃO DE AÇÚCAR SCRAPING - CLI                 ║
 ║                                                                  ║
-║             Sistema Profissional de Coleta Nutricional           ║
+║            Professional Nutritional Data Collection              ║
 ║                                                                  ║
-║  📊 Coleta automatizada de dados nutricionais                   ║
-║  🎯 Interface elegante com experiência aprimorada               ║
-║  📈 Relatórios e estatísticas detalhadas                        ║
+║  📊 Automated nutritional data workflows                         ║
+║  🎯 Polished, animation-rich interface                           ║
+║  📈 Detailed reporting and analytics                             ║
 ╚══════════════════════════════════════════════════════════════════╝
 {Cores.RESET}"""
     print(banner)
 
 def mostrar_barra_progresso(texto: str, duracao: float = 2.0):
-    """Exibe uma barra de progresso animada"""
+    """Display an animated progress bar."""
     print(f"\n{Cores.AMARELO}⏳ {texto}...{Cores.RESET}")
     barra_tamanho = 40
     for i in range(barra_tamanho + 1):
@@ -77,124 +77,124 @@ def mostrar_barra_progresso(texto: str, duracao: float = 2.0):
     print()
 
 def mostrar_menu():
-    """Exibe o menu principal interativo"""
+    """Display the interactive main menu."""
     menu = f"""
-{Cores.AZUL}{Cores.BOLD}═════════════════════ MENU PRINCIPAL ═════════════════════{Cores.RESET}
+{Cores.AZUL}{Cores.BOLD}═══════════════════════ MAIN MENU ═══════════════════════{Cores.RESET}
 
-{Cores.VERDE}🛒 OPERAÇÕES DE COLETA:{Cores.RESET}
-  {Cores.AMARELO}1.{Cores.RESET} 🧪 {Cores.BRANCO}Modo Teste{Cores.RESET}          - Coleta rápida para validação
-  {Cores.AMARELO}2.{Cores.RESET} 🚀 {Cores.BRANCO}Coleta Completa{Cores.RESET}      - Extração completa de dados
-  {Cores.AMARELO}3.{Cores.RESET} 🎯 {Cores.BRANCO}Coleta Personalizada{Cores.RESET} - Escolher categorias específicas
+{Cores.VERDE}🛒 COLLECTION OPERATIONS:{Cores.RESET}
+  {Cores.AMARELO}1.{Cores.RESET} 🧪 {Cores.BRANCO}Test Mode{Cores.RESET}           - Quick validation crawl
+  {Cores.AMARELO}2.{Cores.RESET} 🚀 {Cores.BRANCO}Full Collection{Cores.RESET}     - End-to-end extraction
+  {Cores.AMARELO}3.{Cores.RESET} 🎯 {Cores.BRANCO}Custom Collection{Cores.RESET}   - Pick specific categories
 
-{Cores.VERDE}📊 CONSULTA E ANÁLISE:{Cores.RESET}
-  {Cores.AMARELO}4.{Cores.RESET} 🔍 {Cores.BRANCO}Consultar Dados{Cores.RESET}  - Visualizar informações coletadas
-  {Cores.AMARELO}5.{Cores.RESET} 📈 {Cores.BRANCO}Estatísticas{Cores.RESET}     - Análise e métricas detalhadas
-  {Cores.AMARELO}6.{Cores.RESET} 📋 {Cores.BRANCO}Listar Arquivos{Cores.RESET}  - Ver arquivos gerados
+{Cores.VERDE}📊 QUERY & ANALYTICS:{Cores.RESET}
+  {Cores.AMARELO}4.{Cores.RESET} 🔍 {Cores.BRANCO}Browse Data{Cores.RESET}     - Review collected records
+  {Cores.AMARELO}5.{Cores.RESET} 📈 {Cores.BRANCO}Statistics{Cores.RESET}      - Metrics and insights
+  {Cores.AMARELO}6.{Cores.RESET} 📋 {Cores.BRANCO}List Files{Cores.RESET}      - Inspect generated files
 
-{Cores.VERDE}📁 GERENCIAMENTO:{Cores.RESET}
-  {Cores.AMARELO}7.{Cores.RESET} 💾 {Cores.BRANCO}Exportar Excel{Cores.RESET}   - Salvar dados em formato Excel
-  {Cores.AMARELO}8.{Cores.RESET} 🗑️  {Cores.BRANCO}Limpar Dados{Cores.RESET}     - Remover arquivos antigos
+{Cores.VERDE}📁 MANAGEMENT:{Cores.RESET}
+  {Cores.AMARELO}7.{Cores.RESET} 💾 {Cores.BRANCO}Export to Excel{Cores.RESET}  - Save data as Excel
+  {Cores.AMARELO}8.{Cores.RESET} 🗑️  {Cores.BRANCO}Clear Data{Cores.RESET}      - Remove legacy exports
 
-{Cores.VERDE}ℹ️  INFORMAÇÕES:{Cores.RESET}
-  {Cores.AMARELO}9.{Cores.RESET} 🛒 {Cores.BRANCO}Ver Categorias{Cores.RESET}   - Lista as 16 categorias disponíveis
-  {Cores.AMARELO}A.{Cores.RESET} 📖 {Cores.BRANCO}Sobre{Cores.RESET}           - Informações do programa
-  {Cores.AMARELO}0.{Cores.RESET} ❌ {Cores.BRANCO}Sair{Cores.RESET}            - Encerrar programa
+{Cores.VERDE}ℹ️  INFORMATION:{Cores.RESET}
+  {Cores.AMARELO}9.{Cores.RESET} 🛒 {Cores.BRANCO}View Categories{Cores.RESET}  - List the 16 categories
+  {Cores.AMARELO}A.{Cores.RESET} 📖 {Cores.BRANCO}About{Cores.RESET}            - Program details
+  {Cores.AMARELO}0.{Cores.RESET} ❌ {Cores.BRANCO}Exit{Cores.RESET}             - Close the CLI
 
-{Cores.AZUL}═══════════════════════════════════════════════════════════{Cores.RESET}
+{Cores.AZUL}═════════════════════════════════════════════════════════════════════{Cores.RESET}
 """
     print(menu)
 
 def obter_escolha() -> str:
-    """Obtém a escolha do usuário com tratamento de erros"""
+    """Get user input with graceful error handling."""
     try:
-        escolha = input(f"{Cores.MAGENTA}👉 Digite sua opção (0-9, A): {Cores.RESET}").strip().lower()
+        escolha = input(f"{Cores.MAGENTA}👉 Choose an option (0-9, A): {Cores.RESET}").strip().lower()
         return escolha
     except KeyboardInterrupt:
-        print(f"\n\n{Cores.AMARELO}⚠️  Programa interrompido pelo usuário{Cores.RESET}")
+        print(f"\n\n{Cores.AMARELO}⚠️  Program interrupted by user{Cores.RESET}")
         sys.exit(0)
     except EOFError:
-        print(f"\n\n{Cores.AMARELO}⚠️  Entrada não disponível (modo não-interativo){Cores.RESET}")
+        print(f"\n\n{Cores.AMARELO}⚠️  Input unavailable (non-interactive mode){Cores.RESET}")
         sys.exit(0)
 
 def mostrar_sobre():
-    """Exibe informações detalhadas sobre o programa"""
+    """Display detailed information about the program."""
     sobre = f"""
-{Cores.CIANO}{Cores.BOLD}📖 SOBRE O PÃO DE AÇÚCAR SCRAPING{Cores.RESET}
+{Cores.CIANO}{Cores.BOLD}📖 ABOUT PÃO DE AÇÚCAR SCRAPING{Cores.RESET}
 {Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}
 
-{Cores.VERDE}🎯 OBJETIVO:{Cores.RESET}
-   Sistema automatizado para coleta de dados nutricionais de produtos
-   do supermercado Pão de Açúcar, oferecendo interface elegante e
-   funcionalidades avançadas de análise de dados.
+{Cores.VERDE}🎯 PURPOSE:{Cores.RESET}
+   Automated toolkit for capturing nutritional data from products
+   available at the Brazilian retailer Pão de Açúcar, built with a polished
+   interface and advanced analytics for data-driven teams.
 
-{Cores.VERDE}📊 FUNCIONALIDADES PRINCIPAIS:{Cores.RESET}
-   • Coleta automatizada de URLs de produtos por categoria
-   • Extração inteligente de tabelas nutricionais via JavaScript
-   • Interface interativa com cores e animações
-   • Sistema de consulta avançada com filtros
-   • Exportação para Excel e CSV
-   • Estatísticas detalhadas e análise de dados
-   • Gerenciamento de arquivos com limpeza automática
+{Cores.VERDE}📊 CORE CAPABILITIES:{Cores.RESET}
+   • Automated product URL harvesting by category
+   • JavaScript-powered extraction of nutrition tables
+   • Interactive, color-rich terminal experience
+   • Advanced querying with multi-filter support
+   • Excel and CSV export workflows
+   • Detailed statistics and analytics
+   • File management with safe cleanup routines
 
-{Cores.VERDE}🛒 CATEGORIAS SUPORTADAS:{Cores.RESET}
-   • 13 categorias de alimentos específicas
-   • 1 categoria geral de alimentos (todos os produtos)
-   • 1 categoria de bebidas (vinhos, cervejas, refrigerantes)
-   • 1 categoria Caras do Brasil (produtos brasileiros)
-   • TOTAL: 16 categorias disponíveis para coleta
+{Cores.VERDE}🛒 SUPPORTED CATEGORIES:{Cores.RESET}
+   • 13 specific food categories
+   • 1 general food category (all products)
+   • 1 beverage category (wine, beer, soda)
+   • 1 Caras do Brasil category (Brazilian specialties)
+   • TOTAL: 16 categories available for collection
 
-{Cores.VERDE}🛠️ TECNOLOGIAS UTILIZADAS:{Cores.RESET}
-   • Python 3.8+ com tipagem estática
-   • Selenium WebDriver para automação web
-   • Pandas para manipulação de dados
-   • BeautifulSoup para parsing HTML
-   • Sistema de cores ANSI para interface bonita
-   • argparse para interface de linha de comando
+{Cores.VERDE}🛠️ TECHNOLOGY STACK:{Cores.RESET}
+   • Python 3.8+ with static typing
+   • Selenium WebDriver for browser automation
+   • Pandas for data manipulation
+   • BeautifulSoup for HTML parsing
+   • ANSI color system powering the CLI visuals
+   • argparse for command-line UX
 
-{Cores.VERDE}📂 DADOS COLETADOS POR PRODUTO:{Cores.RESET}
-   • Nome completo do produto
-   • URL da página do produto
-   • Categoria de classificação
-   • Porção recomendada (g/ml)
-   • Valor calórico (kcal)
-   • Carboidratos totais (g)
-   • Proteínas (g)
-   • Gorduras totais (g)
-   • Gorduras saturadas (g)
-   • Fibras alimentares (g)
-   • Açúcares totais (g)
-   • Sódio (mg)
-   • Data e hora da coleta
+{Cores.VERDE}📂 DATA CAPTURED PER PRODUCT:{Cores.RESET}
+   • Full product name
+   • Product page URL
+   • Category classification
+   • Serving size (g/ml)
+   • Calories (kcal)
+   • Total carbohydrates (g)
+   • Protein (g)
+   • Total fat (g)
+   • Saturated fat (g)
+   • Dietary fiber (g)
+   • Total sugars (g)
+   • Sodium (mg)
+   • Collection timestamp
 
-{Cores.VERDE}⚡ CARACTERÍSTICAS:{Cores.RESET}
-   • Interface interativa com cores vibrantes
-   • Barras de progresso animadas
-   • Tratamento robusto de erros
-   • Logs detalhados das operações
-   • Modo teste para validações rápidas
-   • Sistema de cancelamento seguro
-   • Configuração automática do navegador
-   • Compatibilidade multiplataforma
+{Cores.VERDE}⚡ SIGNATURE FEATURES:{Cores.RESET}
+   • Vibrant, interactive interface
+   • Animated progress indicators
+   • Resilient error handling
+   • Detailed operational logging
+   • Test mode for quick validation
+   • Safe cancellation flow
+   • Automated browser setup
+   • Cross-platform compatibility
 
-{Cores.VERDE}📝 DESENVOLVIDO POR:{Cores.RESET}
+{Cores.VERDE}📝 BUILT BY:{Cores.RESET}
    • Sidnei Almeida
-   • Versão: 2.0 (CLI Interativa)
-   • Data: {datetime.now().strftime('%B %Y')}
-   • Repositório: https://github.com/sidnei-almeida/pao_de_acucar_scraping
+   • Version: 2.0 (Interactive CLI)
+   • Date: {datetime.now().strftime('%B %Y')}
+   • Repository: https://github.com/sidnei-almeida/pao_de_acucar_scraping
 
 {Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}
 """
     print(sobre)
 
 def listar_arquivos_gerados():
-    """Lista arquivos gerados pelo programa"""
-    print(f"\n{Cores.CIANO}{Cores.BOLD}📋 ARQUIVOS GERADOS{Cores.RESET}")
+    """List files generated by the program."""
+    print(f"\n{Cores.CIANO}{Cores.BOLD}📋 GENERATED FILES{Cores.RESET}")
     print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
     pasta_dados = "dados_coletados"
 
     if not os.path.exists(pasta_dados):
-        print(f"{Cores.AMARELO}📁 Pasta '{pasta_dados}' não encontrada{Cores.RESET}")
+        print(f"{Cores.AMARELO}📁 Folder '{pasta_dados}' was not found{Cores.RESET}")
         return
 
     arquivos = []
@@ -202,17 +202,17 @@ def listar_arquivos_gerados():
         arquivos.extend(glob.glob(f"{pasta_dados}/{ext}"))
 
     if not arquivos:
-        print(f"{Cores.AMARELO}📄 Nenhum arquivo encontrado em '{pasta_dados}'{Cores.RESET}")
+        print(f"{Cores.AMARELO}📄 No files were found inside '{pasta_dados}'{Cores.RESET}")
         return
 
-    print(f"\n{Cores.VERDE}📊 Total de arquivos: {len(arquivos)}{Cores.RESET}\n")
+    print(f"\n{Cores.VERDE}📊 Total files: {len(arquivos)}{Cores.RESET}\n")
 
     for i, arquivo in enumerate(sorted(arquivos, reverse=True), 1):
         nome_arquivo = os.path.basename(arquivo)
         tamanho = os.path.getsize(arquivo)
         data_modificacao = datetime.fromtimestamp(os.path.getmtime(arquivo))
 
-        # Calcula o tamanho em formato legível
+        # Format size for readability
         if tamanho < 1024:
             tamanho_str = f"{tamanho} B"
         elif tamanho < 1024 * 1024:
@@ -221,19 +221,19 @@ def listar_arquivos_gerados():
             tamanho_str = f"{tamanho / (1024 * 1024):.1f} MB"
 
         print(f"{Cores.AMARELO}{i:2d}.{Cores.RESET} {Cores.BRANCO}{nome_arquivo}{Cores.RESET}")
-        print(f"     📅 {data_modificacao.strftime('%d/%m/%Y %H:%M:%S')}")
+        print(f"     📅 {data_modificacao.strftime('%Y-%m-%d %H:%M:%S')}")
         print(f"     📏 {tamanho_str}")
         print()
 
 def limpar_dados_antigos():
-    """Remove arquivos antigos com confirmação"""
-    print(f"\n{Cores.CIANO}{Cores.BOLD}🗑️  LIMPAR DADOS ANTIGOS{Cores.RESET}")
+    """Remove old files after explicit confirmation."""
+    print(f"\n{Cores.CIANO}{Cores.BOLD}🗑️  CLEAR PREVIOUS DATA{Cores.RESET}")
     print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
     pasta_dados = "dados_coletados"
 
     if not os.path.exists(pasta_dados):
-        print(f"{Cores.AMARELO}📁 Pasta '{pasta_dados}' não encontrada{Cores.RESET}")
+        print(f"{Cores.AMARELO}📁 Folder '{pasta_dados}' was not found{Cores.RESET}")
         return
 
     arquivos = []
@@ -241,36 +241,36 @@ def limpar_dados_antigos():
         arquivos.extend(glob.glob(f"{pasta_dados}/{ext}"))
 
     if not arquivos:
-        print(f"{Cores.VERDE}✅ Nenhum arquivo para limpar{Cores.RESET}")
+        print(f"{Cores.VERDE}✅ No files to clean up{Cores.RESET}")
         return
 
-    print(f"\n{Cores.AMARELO}⚠️  ATENÇÃO:{Cores.RESET}")
-    print(f"   • Serão removidos {Cores.VERMELHO}{len(arquivos)} arquivos{Cores.RESET}")
-    print(f"   • Esta ação {Cores.VERMELHO}NÃO PODE ser desfeita{Cores.RESET}")
-    print(f"\n{Cores.VERDE}📋 Arquivos que serão removidos:{Cores.RESET}")
+    print(f"\n{Cores.AMARELO}⚠️  WARNING:{Cores.RESET}")
+    print(f"   • This will delete {Cores.VERMELHO}{len(arquivos)} file(s){Cores.RESET}")
+    print(f"   • This action {Cores.VERMELHO}CANNOT be undone{Cores.RESET}")
+    print(f"\n{Cores.VERDE}📋 Files scheduled for deletion:{Cores.RESET}")
 
     for arquivo in sorted(arquivos):
         nome_arquivo = os.path.basename(arquivo)
         print(f"   • {nome_arquivo}")
 
-    confirmar = input(f"\n{Cores.MAGENTA}🤔 Tem certeza? Digite 'CONFIRMAR' para prosseguir: {Cores.RESET}")
+    confirmar = input(f"\n{Cores.MAGENTA}🤔 Type 'CONFIRM' to proceed: {Cores.RESET}")
 
-    if confirmar == "CONFIRMAR":
+    if confirmar.strip().upper() == "CONFIRM":
         try:
             for arquivo in arquivos:
                 os.remove(arquivo)
-            print(f"\n{Cores.VERDE}✅ {len(arquivos)} arquivos removidos com sucesso!{Cores.RESET}")
+            print(f"\n{Cores.VERDE}✅ {len(arquivos)} file(s) removed successfully!{Cores.RESET}")
         except Exception as e:
-            print(f"\n{Cores.VERMELHO}❌ Erro ao remover arquivos: {e}{Cores.RESET}")
+            print(f"\n{Cores.VERMELHO}❌ Failed to remove files: {e}{Cores.RESET}")
     else:
-        print(f"{Cores.AMARELO}⏭️  Operação cancelada{Cores.RESET}")
+        print(f"{Cores.AMARELO}⏭️  Operation canceled{Cores.RESET}")
 
 def pausar():
-    """Pausa o programa aguardando input do usuário"""
+    """Pause execution until the user confirms."""
     try:
-        input(f"\n{Cores.CIANO}⏯️  Pressione Enter para continuar...{Cores.RESET}")
+        input(f"\n{Cores.CIANO}⏯️  Press Enter to continue...{Cores.RESET}")
     except EOFError:
-        print(f"\n{Cores.AMARELO}⏭️  Modo não-interativo - continuando automaticamente...{Cores.RESET}")
+        print(f"\n{Cores.AMARELO}⏭️  Non-interactive mode detected — continuing automatically...{Cores.RESET}")
         time.sleep(1)
 
 class PaoDeAcucarCLI:
@@ -279,34 +279,34 @@ class PaoDeAcucarCLI:
     def __init__(self):
         self.categorias_disponiveis = {
             # ═══════════════════════════════════════════════════════════════════
-            # 🍽️ ALIMENTOS - CATEGORIAS ESPECÍFICAS
+            # 🍽️ FOOD - SPECIFIC CATEGORIES
             # ═══════════════════════════════════════════════════════════════════
-            "1": {"nome": "🛒 Açougue", "url": "https://www.paodeacucar.com/categoria/alimentos/acougue"},
-            "2": {"nome": "🧊 Alimentos Congelados", "url": "https://www.paodeacucar.com/categoria/alimentos/alimentos-congelados"},
-            "3": {"nome": "🥛 Alimentos Refrigerados", "url": "https://www.paodeacucar.com/categoria/alimentos/alimentos-refrigerados"},
-            "4": {"nome": "🏠 Básicos da Despensa", "url": "https://www.paodeacucar.com/categoria/alimentos/basico-da-despensa"},
-            "5": {"nome": "🌾 Cereais", "url": "https://www.paodeacucar.com/categoria/alimentos/cereais"},
-            "6": {"nome": "📦 Complemento da Despensa", "url": "https://www.paodeacucar.com/categoria/alimentos/complemento-da-despensa"},
-            "7": {"nome": "🍰 Doces e Sobremesas", "url": "https://www.paodeacucar.com/categoria/alimentos/doces-e-sobremesas"},
-            "8": {"nome": "🥬 Hortifruti", "url": "https://www.paodeacucar.com/categoria/alimentos/hortifruti"},
-            "9": {"nome": "🧂 Mercearia Salgada", "url": "https://www.paodeacucar.com/categoria/alimentos/mercearia-salgada"},
-            "10": {"nome": "🍞 Padaria", "url": "https://www.paodeacucar.com/categoria/alimentos/padaria"},
-            "11": {"nome": "🐟 Peixaria", "url": "https://www.paodeacucar.com/categoria/alimentos/peixaria"},
+            "1": {"nome": "🛒 Butcher", "url": "https://www.paodeacucar.com/categoria/alimentos/acougue"},
+            "2": {"nome": "🧊 Frozen Foods", "url": "https://www.paodeacucar.com/categoria/alimentos/alimentos-congelados"},
+            "3": {"nome": "🥛 Refrigerated Foods", "url": "https://www.paodeacucar.com/categoria/alimentos/alimentos-refrigerados"},
+            "4": {"nome": "🏠 Pantry Staples", "url": "https://www.paodeacucar.com/categoria/alimentos/basico-da-despensa"},
+            "5": {"nome": "🌾 Cereals", "url": "https://www.paodeacucar.com/categoria/alimentos/cereais"},
+            "6": {"nome": "📦 Pantry Add-ons", "url": "https://www.paodeacucar.com/categoria/alimentos/complemento-da-despensa"},
+            "7": {"nome": "🍰 Sweets & Desserts", "url": "https://www.paodeacucar.com/categoria/alimentos/doces-e-sobremesas"},
+            "8": {"nome": "🥬 Produce", "url": "https://www.paodeacucar.com/categoria/alimentos/hortifruti"},
+            "9": {"nome": "🧂 Savory Grocery", "url": "https://www.paodeacucar.com/categoria/alimentos/mercearia-salgada"},
+            "10": {"nome": "🍞 Bakery", "url": "https://www.paodeacucar.com/categoria/alimentos/padaria"},
+            "11": {"nome": "🐟 Seafood", "url": "https://www.paodeacucar.com/categoria/alimentos/peixaria"},
             "12": {"nome": "🍗 Rotisserie", "url": "https://www.paodeacucar.com/categoria/alimentos/rotisserie"},
-            "13": {"nome": "🥨 Salgadinhos e Aperitivos", "url": "https://www.paodeacucar.com/categoria/alimentos/salgadinhos-e-aperitivos"},
+            "13": {"nome": "🥨 Snacks & Appetizers", "url": "https://www.paodeacucar.com/categoria/alimentos/salgadinhos-e-aperitivos"},
             
             # ═══════════════════════════════════════════════════════════════════
-            # 🍽️ ALIMENTOS - CATEGORIA GERAL (TODOS OS ALIMENTOS)
+            # 🍽️ FOOD - GENERAL CATEGORY (ALL FOOD)
             # ═══════════════════════════════════════════════════════════════════
-            "14": {"nome": "🍽️ Alimentos (Geral)", "url": "https://www.paodeacucar.com/categoria/alimentos?s=relevance&p=1"},
+            "14": {"nome": "🍽️ Food (All Items)", "url": "https://www.paodeacucar.com/categoria/alimentos?s=relevance&p=1"},
             
             # ═══════════════════════════════════════════════════════════════════
-            # 🥤 BEBIDAS
+            # 🥤 BEVERAGES
             # ═══════════════════════════════════════════════════════════════════
-            "15": {"nome": "🥤 Bebidas", "url": "https://www.paodeacucar.com/categoria/bebidas?s=relevance&p=1"},
+            "15": {"nome": "🥤 Beverages", "url": "https://www.paodeacucar.com/categoria/bebidas?s=relevance&p=1"},
             
             # ═══════════════════════════════════════════════════════════════════
-            # 🇧🇷 CARAS DO BRASIL (PRODUTOS BRASILEIROS)
+            # 🇧🇷 CARAS DO BRASIL (BRAZILIAN PRODUCTS)
             # ═══════════════════════════════════════════════════════════════════
             "16": {"nome": "🇧🇷 Caras do Brasil", "url": "https://www.paodeacucar.com/categoria/caras-do-brasil?s=relevance&p=1"}
         }
@@ -315,9 +315,9 @@ class PaoDeAcucarCLI:
         self.output_dir = Path("dados_coletados")
         self.output_dir.mkdir(exist_ok=True)
 
-    def listar_categorias(self):
-        """Lista todas as categorias disponíveis"""
-        print(f"\n{Cores.CIANO}{Cores.BOLD}🛒 CATEGORIAS DISPONÍVEIS{Cores.RESET}")
+    def list_categories(self):
+        """List every available category."""
+        print(f"\n{Cores.CIANO}{Cores.BOLD}🛒 AVAILABLE CATEGORIES{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
         for id_cat, info in self.categorias_disponiveis.items():
@@ -326,164 +326,164 @@ class PaoDeAcucarCLI:
             print()
 
     def selecionar_categorias_interativo(self):
-        """Interface interativa aprimorada para seleção de categorias"""
-        print(f"\n{Cores.CIANO}{Cores.BOLD}🎯 SELEÇÃO DE CATEGORIAS{Cores.RESET}")
+        """Enhanced interactive interface for choosing categories."""
+        print(f"\n{Cores.CIANO}{Cores.BOLD}🎯 CATEGORY SELECTION{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-        # Mostra categorias organizadas
-        print(f"\n{Cores.VERDE}📋 CATEGORIAS DISPONÍVEIS:{Cores.RESET}\n")
+        # Organized view
+        print(f"\n{Cores.VERDE}📋 AVAILABLE CATEGORIES:{Cores.RESET}\n")
 
-        # Alimentos específicos
-        print(f"{Cores.CIANO}🍽️ ALIMENTOS - Categorias Específicas:{Cores.RESET}")
+        # Specific food categories
+        print(f"{Cores.CIANO}🍽️ FOOD — Specific Categories:{Cores.RESET}")
         for i in range(1, 14):
             info = self.categorias_disponiveis[str(i)]
             print(f"   {Cores.AMARELO}[{i:2d}]{Cores.RESET} {info['nome']}")
 
-        # Categoria geral
-        print(f"\n{Cores.CIANO}🍽️ ALIMENTOS - Categoria Geral:{Cores.RESET}")
+        # General food category
+        print(f"\n{Cores.CIANO}🍽️ FOOD — General:{Cores.RESET}")
         print(f"   {Cores.AMARELO}[14]{Cores.RESET} {self.categorias_disponiveis['14']['nome']}")
 
-        # Bebidas
-        print(f"\n{Cores.CIANO}🥤 BEBIDAS:{Cores.RESET}")
+        # Beverages
+        print(f"\n{Cores.CIANO}🥤 BEVERAGES:{Cores.RESET}")
         print(f"   {Cores.AMARELO}[15]{Cores.RESET} {self.categorias_disponiveis['15']['nome']}")
 
         # Caras do Brasil
-        print(f"\n{Cores.CIANO}🇧🇷 PRODUTOS BRASILEIROS:{Cores.RESET}")
+        print(f"\n{Cores.CIANO}🇧🇷 BRAZILIAN SPECIALTIES:{Cores.RESET}")
         print(f"   {Cores.AMARELO}[16]{Cores.RESET} {self.categorias_disponiveis['16']['nome']}")
 
-        # Opções rápidas
-        print(f"\n{Cores.VERDE}⚡ OPÇÕES RÁPIDAS:{Cores.RESET}")
-        print(f"   {Cores.CIANO}•{Cores.RESET} Digite {Cores.BRANCO}'todos'{Cores.RESET} para selecionar todas as 16 categorias")
-        print(f"   {Cores.CIANO}•{Cores.RESET} Digite {Cores.BRANCO}'alimentos'{Cores.RESET} para categorias 1-13")
-        print(f"   {Cores.CIANO}•{Cores.RESET} Digite {Cores.BRANCO}'novas'{Cores.RESET} para categorias 14-16")
-        print(f"   {Cores.CIANO}•{Cores.RESET} Digite números separados por vírgula (ex: {Cores.AMARELO}1,3,5,14,15{Cores.RESET})")
+        # Quick shortcuts
+        print(f"\n{Cores.VERDE}⚡ QUICK SHORTCUTS:{Cores.RESET}")
+        print(f"   {Cores.CIANO}•{Cores.RESET} Type {Cores.BRANCO}'all'{Cores.RESET} to select all 16 categories")
+        print(f"   {Cores.CIANO}•{Cores.RESET} Type {Cores.BRANCO}'food'{Cores.RESET} for categories 1-13")
+        print(f"   {Cores.CIANO}•{Cores.RESET} Type {Cores.BRANCO}'new'{Cores.RESET} for categories 14-16")
+        print(f"   {Cores.CIANO}•{Cores.RESET} Or enter comma-separated IDs (e.g., {Cores.AMARELO}1,3,5,14,15{Cores.RESET})")
 
         while True:
             try:
-                entrada = input(f"\n{Cores.MAGENTA}👉 Selecione as categorias: {Cores.RESET}").strip().lower()
+                entrada = input(f"\n{Cores.MAGENTA}👉 Select categories: {Cores.RESET}").strip().lower()
 
                 if not entrada:
-                    print(f"{Cores.VERMELHO}❌ Selecione pelo menos uma categoria{Cores.RESET}")
+                    print(f"{Cores.VERMELHO}❌ Select at least one category{Cores.RESET}")
                     continue
 
                 categorias_selecionadas = []
 
-                # Opções rápidas
-                if entrada == 'todos':
-                    print(f"\n{Cores.VERDE}✅ Selecionadas TODAS as 16 categorias{Cores.RESET}")
+                # Quick shortcuts (accept English and legacy Portuguese keywords)
+                if entrada in {'all', 'todos'}:
+                    print(f"\n{Cores.VERDE}✅ All 16 categories selected{Cores.RESET}")
                     return [self.categorias_disponiveis[str(i)] for i in range(1, 17)]
 
-                elif entrada == 'alimentos':
-                    print(f"\n{Cores.VERDE}✅ Selecionadas 13 categorias de alimentos{Cores.RESET}")
+                elif entrada in {'food', 'alimentos'}:
+                    print(f"\n{Cores.VERDE}✅ 13 food categories selected{Cores.RESET}")
                     return [self.categorias_disponiveis[str(i)] for i in range(1, 14)]
 
-                elif entrada == 'novas':
-                    print(f"\n{Cores.VERDE}✅ Selecionadas 3 novas categorias (14-16){Cores.RESET}")
+                elif entrada in {'new', 'novas'}:
+                    print(f"\n{Cores.VERDE}✅ New categories 14-16 selected{Cores.RESET}")
                     return [self.categorias_disponiveis[str(i)] for i in range(14, 17)]
 
                 else:
-                    # Seleção por números
+                    # Manual selection via IDs
                     ids = [id.strip() for id in entrada.split(',') if id.strip()]
 
                     for cat_id in ids:
                         if cat_id in self.categorias_disponiveis:
                             categorias_selecionadas.append(self.categorias_disponiveis[cat_id])
                         else:
-                            print(f"{Cores.VERMELHO}❌ Categoria inválida: {cat_id}{Cores.RESET}")
+                            print(f"{Cores.VERMELHO}❌ Invalid category: {cat_id}{Cores.RESET}")
 
                     if categorias_selecionadas:
-                        print(f"\n{Cores.VERDE}✅ {len(categorias_selecionadas)} categoria(s) selecionada(s):{Cores.RESET}")
+                        print(f"\n{Cores.VERDE}✅ {len(categorias_selecionadas)} category(ies) selected:{Cores.RESET}")
                         for cat in categorias_selecionadas:
                             print(f"   • {cat['nome']}")
                         return categorias_selecionadas
                     else:
-                        print(f"{Cores.VERMELHO}❌ Nenhuma categoria válida selecionada{Cores.RESET}")
+                        print(f"{Cores.VERMELHO}❌ No valid categories selected{Cores.RESET}")
 
             except KeyboardInterrupt:
-                print(f"\n{Cores.AMARELO}⏭️  Operação cancelada{Cores.RESET}")
+                print(f"\n{Cores.AMARELO}⏭️  Operation canceled{Cores.RESET}")
                 return []
 
     def executar_coleta_teste(self):
-        """Executa coleta em modo teste"""
-        print(f"\n{Cores.CIANO}{Cores.BOLD}🧪 MODO TESTE - COLETA RÁPIDA{Cores.RESET}")
+        """Run the collection workflow in test mode."""
+        print(f"\n{Cores.CIANO}{Cores.BOLD}🧪 TEST MODE — QUICK RUN{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-        print(f"\n{Cores.VERDE}🔬 Características do modo teste:{Cores.RESET}")
-        print(f"   • Coleta limitada a {Cores.AMARELO}5 produtos{Cores.RESET} por categoria")
-        print(f"   • Ideal para {Cores.CIANO}validações rápidas{Cores.RESET}")
-        print(f"   • Processo {Cores.VERDE}acelerado{Cores.RESET} para desenvolvimento")
+        print(f"\n{Cores.VERDE}🔬 Test mode highlights:{Cores.RESET}")
+        print(f"   • Limits to {Cores.AMARELO}5 products{Cores.RESET} per category")
+        print(f"   • Perfect for {Cores.CIANO}rapid validation{Cores.RESET}")
+        print(f"   • {Cores.VERDE}Accelerated{Cores.RESET} flow for development")
 
         categorias = self.selecionar_categorias_interativo()
         if not categorias:
             return False
 
-        confirmar = input(f"\n{Cores.MAGENTA}🤔 Iniciar coleta teste? (s/N): {Cores.RESET}").lower()
+        confirmar = input(f"\n{Cores.MAGENTA}🤔 Start test collection? (y/N): {Cores.RESET}").lower()
 
-        if confirmar in ['s', 'sim', 'y', 'yes']:
+        if confirmar in {'y', 'yes', 's', 'sim'}:
             return self.executar_coleta(categorias, modo_teste=True)
         else:
-            print(f"{Cores.AMARELO}⏭️  Operação cancelada{Cores.RESET}")
+            print(f"{Cores.AMARELO}⏭️  Operation canceled{Cores.RESET}")
             return False
 
     def executar_coleta_completa(self):
-        """Executa coleta completa"""
-        print(f"\n{Cores.CIANO}{Cores.BOLD}🚀 MODO COMPLETO - COLETA ILIMITADA{Cores.RESET}")
+        """Run the full collection workflow."""
+        print(f"\n{Cores.CIANO}{Cores.BOLD}🚀 FULL MODE — COMPLETE COLLECTION{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-        print(f"\n{Cores.AMARELO}⚠️  ATENÇÃO:{Cores.RESET}")
-        print(f"   • Esta operação pode {Cores.VERMELHO}demorar várias horas{Cores.RESET}")
-        print(f"   • Pode consumir {Cores.VERMELHO}muita largura de banda{Cores.RESET}")
-        print(f"   • Todos os produtos das categorias serão processados")
+        print(f"\n{Cores.AMARELO}⚠️  PLEASE NOTE:{Cores.RESET}")
+        print(f"   • This run may {Cores.VERMELHO}take several hours{Cores.RESET}")
+        print(f"   • It can consume {Cores.VERMELHO}significant bandwidth{Cores.RESET}")
+        print(f"   • Every product in each category will be processed")
 
         categorias = self.selecionar_categorias_interativo()
         if not categorias:
             return False
 
-        confirmar = input(f"\n{Cores.MAGENTA}🤔 Iniciar coleta completa? (s/N): {Cores.RESET}").lower()
+        confirmar = input(f"\n{Cores.MAGENTA}🤔 Start full collection? (y/N): {Cores.RESET}").lower()
 
-        if confirmar in ['s', 'sim', 'y', 'yes']:
+        if confirmar in {'y', 'yes', 's', 'sim'}:
             return self.executar_coleta(categorias, modo_teste=False)
         else:
-            print(f"{Cores.AMARELO}⏭️  Operação cancelada{Cores.RESET}")
+            print(f"{Cores.AMARELO}⏭️  Operation canceled{Cores.RESET}")
             return False
 
     def executar_coleta(self, categorias, modo_teste=False):
-        """Executa o processo de coleta"""
+        """Execute the collection workflow."""
         try:
-            mostrar_barra_progresso("Preparando sistema de coleta", 1.5)
+            mostrar_barra_progresso("Preparing collection engine", 1.5)
 
-            # Coleta URLs
+            # Collect URLs
             urls = self.coletar_urls(categorias, modo_teste)
 
             if urls:
-                # Extrai dados nutricionais
+                # Extract nutritional data
                 sucesso = self.extrair_dados_nutricionais(urls)
                 if sucesso:
-                    print(f"\n{Cores.VERDE}🎉 Coleta concluída com sucesso!{Cores.RESET}")
+                    print(f"\n{Cores.VERDE}🎉 Collection finished successfully!{Cores.RESET}")
                     return True
                 else:
-                    print(f"\n{Cores.VERMELHO}❌ Erro durante a coleta{Cores.RESET}")
+                    print(f"\n{Cores.VERMELHO}❌ Error during collection{Cores.RESET}")
                     return False
             else:
-                print(f"\n{Cores.VERMELHO}❌ Nenhuma URL coletada{Cores.RESET}")
+                print(f"\n{Cores.VERMELHO}❌ No URLs were collected{Cores.RESET}")
                 return False
 
         except Exception as e:
-            print(f"\n{Cores.VERMELHO}❌ Erro durante execução: {e}{Cores.RESET}")
+            print(f"\n{Cores.VERMELHO}❌ Unexpected error: {e}{Cores.RESET}")
             return False
 
     def coletar_urls(self, categorias: List[Dict], modo_teste: bool = False) -> List[Dict]:
-        """Coleta URLs dos produtos das categorias selecionadas"""
-        print(f"\n{Cores.CIANO}{Cores.BOLD}🔍 FASE 1: COLETA DE URLs{Cores.RESET}")
+        """Collect product URLs for the selected categories."""
+        print(f"\n{Cores.CIANO}{Cores.BOLD}🔍 PHASE 1: URL HARVESTING{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
         todas_urls = []
 
         for categoria in categorias:
-            print(f"\n{Cores.VERDE}📂 Processando categoria: {Cores.BRANCO}{categoria['nome']}{Cores.RESET}")
+            print(f"\n{Cores.VERDE}📂 Processing category: {Cores.BRANCO}{categoria['nome']}{Cores.RESET}")
 
             try:
-                mostrar_barra_progresso(f"Acessando {categoria['nome']}", 1.0)
+                mostrar_barra_progresso(f"Opening {categoria['nome']}", 1.0)
 
                 collector = URLCollector()
                 urls = collector.coletar_urls(
@@ -493,249 +493,250 @@ class PaoDeAcucarCLI:
                 )
 
                 if urls:
-                    print(f"{Cores.VERDE}  ✅ {len(urls)} produtos encontrados{Cores.RESET}")
+                    print(f"{Cores.VERDE}  ✅ {len(urls)} product(s) found{Cores.RESET}")
                     todas_urls.extend(urls)
 
-                    # Mostra alguns exemplos
-                    print(f"{Cores.CIANO}  📝 Exemplos de produtos:{Cores.RESET}")
+                    # Display sample products
+                    print(f"{Cores.CIANO}  📝 Sample products:{Cores.RESET}")
                     for i, produto in enumerate(urls[:3], 1):
                         nome = produto['nome'][:50] + "..." if len(produto['nome']) > 50 else produto['nome']
                         print(f"    {Cores.AMARELO}{i}.{Cores.RESET} {nome}")
                     if len(urls) > 3:
-                        print(f"    {Cores.CIANO}... e mais {len(urls) - 3} produtos{Cores.RESET}")
+                        print(f"    {Cores.CIANO}... plus {len(urls) - 3} more product(s){Cores.RESET}")
                 else:
-                    print(f"{Cores.AMARELO}  ⚠️ Nenhum produto encontrado{Cores.RESET}")
+                    print(f"{Cores.AMARELO}  ⚠️ No products found{Cores.RESET}")
 
             except Exception as e:
-                print(f"{Cores.VERMELHO}  ❌ Erro ao coletar URLs: {e}{Cores.RESET}")
+                print(f"{Cores.VERMELHO}  ❌ Error collecting URLs: {e}{Cores.RESET}")
 
-        print(f"\n{Cores.VERDE}📊 Total de URLs coletadas: {Cores.BRANCO}{len(todas_urls)}{Cores.RESET}")
+        print(f"\n{Cores.VERDE}📊 Total URLs collected: {Cores.BRANCO}{len(todas_urls)}{Cores.RESET}")
         return todas_urls
 
     def extrair_dados_nutricionais(self, urls: List[Dict]) -> bool:
-        """Extrai dados nutricionais das URLs coletadas"""
+        """Extract nutritional data from the collected URLs."""
         if not urls:
-            print(f"{Cores.VERMELHO}❌ Nenhuma URL para processar{Cores.RESET}")
+            print(f"{Cores.VERMELHO}❌ No URLs to process{Cores.RESET}")
             return False
 
-        print(f"\n{Cores.CIANO}{Cores.BOLD}🍽️ FASE 2: EXTRAÇÃO DE DADOS NUTRICIONAIS{Cores.RESET}")
+        print(f"\n{Cores.CIANO}{Cores.BOLD}🍽️ PHASE 2: NUTRITION DATA EXTRACTION{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-        print(f"{Cores.VERDE}📊 Processando {Cores.BRANCO}{len(urls)}{Cores.RESET} produtos...{Cores.RESET}")
+        print(f"{Cores.VERDE}📊 Processing {Cores.BRANCO}{len(urls)}{Cores.RESET} product(s)...{Cores.RESET}")
 
         try:
-            mostrar_barra_progresso("Configurando scraper", 1.0)
+            mostrar_barra_progresso("Configuring scraper", 1.0)
 
             scraper = Scraper()
 
-            # Salva URLs em arquivo temporário
+            # Save URLs into a temporary file
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             arquivo_urls = f"urls_temp_{timestamp}.csv"
 
-            print(f"{Cores.CIANO}💾 Salvando URLs temporárias...{Cores.RESET}")
+            print(f"{Cores.CIANO}💾 Saving temporary URLs...{Cores.RESET}")
             df_urls = pd.DataFrame(urls)
             df_urls.to_csv(arquivo_urls, index=False)
 
-            # Processa o arquivo
-            mostrar_barra_progresso("Extraindo dados nutricionais", 2.0)
+            # Process the file
+            mostrar_barra_progresso("Extracting nutritional data", 2.0)
             scraper.processar_arquivo_urls(arquivo_urls)
 
-            # Remove arquivo temporário
+            # Remove temp file
             if os.path.exists(arquivo_urls):
                 os.remove(arquivo_urls)
-                print(f"{Cores.CIANO}🗑️ Arquivo temporário removido{Cores.RESET}")
+                print(f"{Cores.CIANO}🗑️ Temporary file removed{Cores.RESET}")
 
-            # Verifica se dados foram salvos
+            # Confirm output file was generated
             arquivo_saida = "dados_coletados/dados_nutricionais.csv"
             if os.path.exists(arquivo_saida):
                 df_resultado = pd.read_csv(arquivo_saida)
                 produtos_coletados = len(df_resultado)
-                print(f"\n{Cores.VERDE}✅ Dados salvos em '{Cores.BRANCO}{arquivo_saida}{Cores.RESET}'{Cores.VERDE}")
-                print(f"📊 Total de produtos com dados nutricionais: {Cores.BRANCO}{produtos_coletados}{Cores.RESET}")
+                print(f"\n{Cores.VERDE}✅ Data saved to '{Cores.BRANCO}{arquivo_saida}{Cores.RESET}{Cores.VERDE}'")
+                print(f"📊 Products with nutritional data: {Cores.BRANCO}{produtos_coletados}{Cores.RESET}")
                 return True
             else:
-                print(f"{Cores.VERMELHO}❌ Erro: Nenhum dado foi salvo{Cores.RESET}")
+                print(f"{Cores.VERMELHO}❌ Error: no data was saved{Cores.RESET}")
                 return False
 
         except Exception as e:
-            print(f"{Cores.VERMELHO}❌ Erro durante extração: {e}{Cores.RESET}")
+            print(f"{Cores.VERMELHO}❌ Error during extraction: {e}{Cores.RESET}")
             return False
 
     def consultar_dados(self, filtros: Optional[Dict] = None):
-        """Consulta os dados coletados"""
-        print(f"\n{Cores.CIANO}{Cores.BOLD}🔍 CONSULTA DE DADOS NUTRICIONAIS{Cores.RESET}")
+        """Query the collected dataset."""
+        print(f"\n{Cores.CIANO}{Cores.BOLD}🔍 NUTRITION DATA QUERY{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
         arquivo_dados = "dados_coletados/dados_nutricionais.csv"
 
         if not os.path.exists(arquivo_dados):
-            print(f"{Cores.VERMELHO}❌ Nenhum dado coletado ainda. Execute coleta primeiro.{Cores.RESET}")
+            print(f"{Cores.VERMELHO}❌ No data collected yet. Run a collection first.{Cores.RESET}")
             return
 
         try:
-            mostrar_barra_progresso("Carregando dados", 1.0)
+            mostrar_barra_progresso("Loading dataset", 1.0)
 
             df = pd.read_csv(arquivo_dados)
 
-            # Aplica filtros se fornecidos
+            # Apply filters if provided
             filtros_aplicados = []
             if filtros:
                 if filtros.get('categoria'):
                     df = df[df['categoria'].str.contains(filtros['categoria'], case=False, na=False)]
-                    filtros_aplicados.append(f"categoria: {filtros['categoria']}")
+                    filtros_aplicados.append(f"category: {filtros['categoria']}")
                 if filtros.get('nome'):
                     df = df[df['nome'].str.contains(filtros['nome'], case=False, na=False)]
-                    filtros_aplicados.append(f"nome: {filtros['nome']}")
+                    filtros_aplicados.append(f"name: {filtros['nome']}")
 
             if df.empty:
-                print(f"{Cores.AMARELO}⚠️ Nenhum produto encontrado com os filtros aplicados{Cores.RESET}")
+                print(f"{Cores.AMARELO}⚠️ No products found with the selected filters{Cores.RESET}")
                 if filtros_aplicados:
-                    print(f"{Cores.CIANO}Filtros: {', '.join(filtros_aplicados)}{Cores.RESET}")
+                    print(f"{Cores.CIANO}Filters: {', '.join(filtros_aplicados)}{Cores.RESET}")
                 return
 
-            print(f"\n{Cores.VERDE}📊 {Cores.BRANCO}{len(df)}{Cores.RESET} produtos encontrados{Cores.RESET}")
+            print(f"\n{Cores.VERDE}📊 {Cores.BRANCO}{len(df)}{Cores.RESET} product(s) found{Cores.RESET}")
             if filtros_aplicados:
-                print(f"{Cores.CIANO}Filtros aplicados: {Cores.BRANCO}{', '.join(filtros_aplicados)}{Cores.RESET}")
+                print(f"{Cores.CIANO}Applied filters: {Cores.BRANCO}{', '.join(filtros_aplicados)}{Cores.RESET}")
 
-            print(f"\n{Cores.AZUL}📋 DADOS NUTRICIONAIS:{Cores.RESET}")
+            print(f"\n{Cores.AZUL}📋 NUTRITIONAL SNAPSHOT:{Cores.RESET}")
             print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-            # Cabeçalho da tabela
-            header = f"{Cores.BOLD}{'Produto':<50} {'Categoria':<20} {'Calorias':<10} {'Proteínas':<10} {'Carboidratos':<12}{Cores.RESET}"
+            # Table header
+            header = f"{Cores.BOLD}{'Product':<50} {'Category':<20} {'Calories':<10} {'Protein':<10} {'Carbohydrates':<12}{Cores.RESET}"
             print(header)
             print(f"{Cores.AZUL}{'-' * 110}{Cores.RESET}")
 
-            # Mostra dados em formato tabular (máximo 20 produtos)
+            # Show up to 20 products
             produtos_mostrados = 0
             for _, produto in df.iterrows():
                 if produtos_mostrados >= 20:
                     break
 
                 nome = produto['nome'][:48] + "..." if len(produto['nome']) > 48 else produto['nome']
-                categoria = produto.get('categoria', 'N/A')[:18] + "..." if len(str(produto.get('categoria', 'N/A'))) > 18 else str(produto.get('categoria', 'N/A'))
+                categoria = produto.get('categoria', 'N/A')
+                categoria = categoria[:18] + "..." if len(str(categoria)) > 18 else str(categoria)
 
                 linha = f"{nome:<50} {categoria:<20} {produto['calorias']:<10} {produto['proteinas']:<10} {produto['carboidratos']:<12}"
                 print(linha)
                 produtos_mostrados += 1
 
             if len(df) > 20:
-                print(f"\n{Cores.CIANO}... e mais {len(df) - 20} produtos (total: {len(df)}){Cores.RESET}")
+                print(f"\n{Cores.CIANO}... plus {len(df) - 20} additional product(s) (total: {len(df)}){Cores.RESET}")
 
-            # Salva consulta em arquivo se solicitado
+            # Save filtered result if filters were applied
             if filtros:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 arquivo_consulta = self.output_dir / f"consulta_{timestamp}.csv"
                 df.to_csv(arquivo_consulta, index=False)
-                print(f"\n{Cores.VERDE}💾 Consulta salva em: {Cores.BRANCO}{arquivo_consulta}{Cores.RESET}")
+                print(f"\n{Cores.VERDE}💾 Query saved to: {Cores.BRANCO}{arquivo_consulta}{Cores.RESET}")
 
         except Exception as e:
-            print(f"{Cores.VERMELHO}❌ Erro ao consultar dados: {e}{Cores.RESET}")
+            print(f"{Cores.VERMELHO}❌ Error while querying data: {e}{Cores.RESET}")
 
     def exportar_excel(self, filtros: Optional[Dict] = None):
-        """Exporta dados para Excel"""
-        print(f"\n{Cores.CIANO}{Cores.BOLD}💾 EXPORTAÇÃO PARA EXCEL{Cores.RESET}")
+        """Export data to an Excel spreadsheet."""
+        print(f"\n{Cores.CIANO}{Cores.BOLD}💾 EXCEL EXPORT{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
         arquivo_dados = "dados_nutricionais.csv"
 
         if not os.path.exists(arquivo_dados):
-            print(f"{Cores.VERMELHO}❌ Nenhum dado coletado ainda. Execute coleta primeiro.{Cores.RESET}")
+            print(f"{Cores.VERMELHO}❌ No data collected yet. Run a collection first.{Cores.RESET}")
             return
 
         try:
-            mostrar_barra_progresso("Carregando dados para exportação", 1.0)
+            mostrar_barra_progresso("Loading data for export", 1.0)
 
             df = pd.read_csv(arquivo_dados)
 
-            # Aplica filtros se fornecidos
+            # Apply filters if provided
             filtros_aplicados = []
             if filtros:
                 if filtros.get('categoria'):
                     df = df[df['categoria'].str.contains(filtros['categoria'], case=False, na=False)]
-                    filtros_aplicados.append(f"categoria: {filtros['categoria']}")
+                    filtros_aplicados.append(f"category: {filtros['categoria']}")
                 if filtros.get('nome'):
                     df = df[df['nome'].str.contains(filtros['nome'], case=False, na=False)]
-                    filtros_aplicados.append(f"nome: {filtros['nome']}")
+                    filtros_aplicados.append(f"name: {filtros['nome']}")
 
             if df.empty:
-                print(f"{Cores.AMARELO}⚠️ Nenhum produto encontrado com os filtros aplicados{Cores.RESET}")
+                print(f"{Cores.AMARELO}⚠️ No products matched the provided filters{Cores.RESET}")
                 return
 
-            # Gera nome do arquivo
+            # Generate file name
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             arquivo_excel = self.output_dir / f"dados_nutricionais_{timestamp}.xlsx"
 
-            print(f"\n{Cores.VERDE}📊 Preparando exportação de {Cores.BRANCO}{len(df)}{Cores.RESET} produtos...{Cores.RESET}")
+            print(f"\n{Cores.VERDE}📊 Preparing to export {Cores.BRANCO}{len(df)}{Cores.RESET} product(s)...{Cores.RESET}")
             if filtros_aplicados:
-                print(f"{Cores.CIANO}Filtros aplicados: {Cores.BRANCO}{', '.join(filtros_aplicados)}{Cores.RESET}")
+                print(f"{Cores.CIANO}Applied filters: {Cores.BRANCO}{', '.join(filtros_aplicados)}{Cores.RESET}")
 
-            # Exporta para Excel
-            mostrar_barra_progresso("Gerando arquivo Excel", 1.5)
+            # Export to Excel
+            mostrar_barra_progresso("Generating Excel file", 1.5)
             df.to_excel(arquivo_excel, index=False, engine='openpyxl')
 
-            print(f"\n{Cores.VERDE}✅ Dados exportados com sucesso!{Cores.RESET}")
-            print(f"{Cores.CIANO}📁 Arquivo: {Cores.BRANCO}{arquivo_excel}{Cores.RESET}")
-            print(f"{Cores.CIANO}📊 Produtos exportados: {Cores.BRANCO}{len(df)}{Cores.RESET}")
-            print(f"{Cores.CIANO}📏 Tamanho: {Cores.BRANCO}{arquivo_excel.stat().st_size / 1024:.1f} KB{Cores.RESET}")
+            print(f"\n{Cores.VERDE}✅ Export completed successfully!{Cores.RESET}")
+            print(f"{Cores.CIANO}📁 File: {Cores.BRANCO}{arquivo_excel}{Cores.RESET}")
+            print(f"{Cores.CIANO}📊 Products exported: {Cores.BRANCO}{len(df)}{Cores.RESET}")
+            print(f"{Cores.CIANO}📏 Size: {Cores.BRANCO}{arquivo_excel.stat().st_size / 1024:.1f} KB{Cores.RESET}")
 
         except Exception as e:
-            print(f"{Cores.VERMELHO}❌ Erro ao exportar para Excel: {e}{Cores.RESET}")
+            print(f"{Cores.VERMELHO}❌ Error exporting to Excel: {e}{Cores.RESET}")
 
     def validar_categorias(self, categorias_ids: List[str]) -> List[Dict]:
-        """Valida e retorna as categorias selecionadas"""
+        """Validate and return selected categories."""
         categorias_validas = []
         
         for cat_id in categorias_ids:
             if cat_id in self.categorias_disponiveis:
                 categorias_validas.append(self.categorias_disponiveis[cat_id])
             else:
-                print(f"❌ Categoria inválida: {cat_id}")
+                print(f"❌ Invalid category: {cat_id}")
         
         return categorias_validas
 
     def mostrar_estatisticas(self):
-        """Mostra estatísticas detalhadas dos dados coletados"""
-        print(f"\n{Cores.CIANO}{Cores.BOLD}📈 ESTATÍSTICAS DOS DADOS COLETADOS{Cores.RESET}")
+        """Display detailed statistics for the collected dataset."""
+        print(f"\n{Cores.CIANO}{Cores.BOLD}📈 DATASET STATISTICS{Cores.RESET}")
         print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
         arquivo_dados = "dados_coletados/dados_nutricionais.csv"
 
         if not os.path.exists(arquivo_dados):
-            print(f"{Cores.VERMELHO}❌ Nenhum dado coletado ainda. Execute coleta primeiro.{Cores.RESET}")
+            print(f"{Cores.VERMELHO}❌ No data collected yet. Run a collection first.{Cores.RESET}")
             return
 
         try:
-            mostrar_barra_progresso("Calculando estatísticas", 1.0)
+            mostrar_barra_progresso("Calculating statistics", 1.0)
 
             df = pd.read_csv(arquivo_dados)
 
             if df.empty:
-                print(f"{Cores.AMARELO}⚠️ Nenhum dado disponível para análise{Cores.RESET}")
+                print(f"{Cores.AMARELO}⚠️ No data available for analysis{Cores.RESET}")
                 return
 
-            print(f"\n{Cores.VERDE}📊 RESUMO GERAL:{Cores.RESET}")
+            print(f"\n{Cores.VERDE}📊 OVERVIEW:{Cores.RESET}")
             print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
-            print(f"   📈 Total de produtos: {Cores.BRANCO}{len(df)}{Cores.RESET}")
-            print(f"   📂 Categorias distintas: {Cores.BRANCO}{df['categoria'].nunique()}{Cores.RESET}")
+            print(f"   📈 Total products: {Cores.BRANCO}{len(df)}{Cores.RESET}")
+            print(f"   📂 Distinct categories: {Cores.BRANCO}{df['categoria'].nunique()}{Cores.RESET}")
 
             if 'data_coleta' in df.columns and df['data_coleta'].notna().any():
                 ultima_coleta = df['data_coleta'].max()
-                print(f"   📅 Última coleta: {Cores.BRANCO}{ultima_coleta}{Cores.RESET}")
+                print(f"   📅 Latest collection: {Cores.BRANCO}{ultima_coleta}{Cores.RESET}")
 
-            # Estatísticas nutricionais
-            print(f"\n{Cores.VERDE}🥗 MÉDIAS NUTRICIONAIS (por 100g):{Cores.RESET}")
+            # Nutritional averages
+            print(f"\n{Cores.VERDE}🥗 NUTRITIONAL AVERAGES (per 100g):{Cores.RESET}")
             print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
             colunas_nutricionais = ['calorias', 'proteinas', 'carboidratos', 'gorduras']
             medias = df[colunas_nutricionais].mean()
 
-            print(f"   🔥 Calorias:     {Cores.BRANCO}{medias['calorias']:7.1f}{Cores.RESET} kcal")
-            print(f"   💪 Proteínas:    {Cores.BRANCO}{medias['proteinas']:7.1f}{Cores.RESET} g")
-            print(f"   🌾 Carboidratos: {Cores.BRANCO}{medias['carboidratos']:7.1f}{Cores.RESET} g")
-            print(f"   🧈 Gorduras:     {Cores.BRANCO}{medias['gorduras']:7.1f}{Cores.RESET} g")
+            print(f"   🔥 Calories:      {Cores.BRANCO}{medias['calorias']:7.1f}{Cores.RESET} kcal")
+            print(f"   💪 Protein:       {Cores.BRANCO}{medias['proteinas']:7.1f}{Cores.RESET} g")
+            print(f"   🌾 Carbohydrates: {Cores.BRANCO}{medias['carboidratos']:7.1f}{Cores.RESET} g")
+            print(f"   🧈 Fat:           {Cores.BRANCO}{medias['gorduras']:7.1f}{Cores.RESET} g")
 
-            # Top categorias
-            print(f"\n{Cores.VERDE}🏆 TOP 5 CATEGORIAS:{Cores.RESET}")
+            # Top categories
+            print(f"\n{Cores.VERDE}🏆 TOP 5 CATEGORIES:{Cores.RESET}")
             print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
             top_categorias = df['categoria'].value_counts().head()
@@ -743,24 +744,26 @@ class PaoDeAcucarCLI:
                 porcentagem = (count / len(df)) * 100
                 emoji = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"][i-1] if i <= 5 else "📊"
                 print(f"   {emoji} {categoria}")
-                print(f"      📊 {count} produtos ({porcentagem:5.1f}%)")
+                print(f"      📊 {count} product(s) ({porcentagem:5.1f}%)")
 
-            # Estatísticas adicionais
-            print(f"\n{Cores.VERDE}📋 INFORMAÇÕES DETALHADAS:{Cores.RESET}")
+            # Additional stats
+            print(f"\n{Cores.VERDE}📋 DETAILED INSIGHTS:{Cores.RESET}")
             print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-            # Valores mínimos e máximos
-            print(f"   📉 Produto com menos calorias: {Cores.BRANCO}{df.loc[df['calorias'].idxmin(), 'nome'][:40]}...{Cores.RESET} ({df['calorias'].min()} kcal)")
-            print(f"   📈 Produto com mais calorias:  {Cores.BRANCO}{df.loc[df['calorias'].idxmax(), 'nome'][:40]}...{Cores.RESET} ({df['calorias'].max()} kcal)")
+            # Min and max calorie products
+            produto_menos_calorias = df.loc[df['calorias'].idxmin(), 'nome']
+            produto_mais_calorias = df.loc[df['calorias'].idxmax(), 'nome']
+            print(f"   📉 Lowest-calorie product: {Cores.BRANCO}{produto_menos_calorias[:40]}...{Cores.RESET} ({df['calorias'].min()} kcal)")
+            print(f"   📈 Highest-calorie product: {Cores.BRANCO}{produto_mais_calorias[:40]}...{Cores.RESET} ({df['calorias'].max()} kcal)")
 
-            # Distribuição por categorias
-            print(f"\n{Cores.CIANO}📊 Distribuição detalhada por categoria:{Cores.RESET}")
+            # Distribution by category
+            print(f"\n{Cores.CIANO}📊 Category distribution:{Cores.RESET}")
             distribuicao = df['categoria'].value_counts()
             for categoria, count in distribuicao.items():
-                print(f"   • {categoria}: {count} produtos")
+                print(f"   • {categoria}: {count} product(s)")
 
         except Exception as e:
-            print(f"{Cores.VERMELHO}❌ Erro ao calcular estatísticas: {e}{Cores.RESET}")
+            print(f"{Cores.VERMELHO}❌ Error calculating statistics: {e}{Cores.RESET}")
 
 def main():
     """Função principal - Interface interativa do programa"""
@@ -778,65 +781,65 @@ def main():
             if escolha == "1":
                 sucesso = cli.executar_coleta_teste()
                 if sucesso:
-                    print(f"\n{Cores.VERDE}🎉 Coleta de teste concluída com sucesso!{Cores.RESET}")
+                    print(f"\n{Cores.VERDE}🎉 Test collection completed successfully!{Cores.RESET}")
                 pausar()
 
             elif escolha == "2":
                 sucesso = cli.executar_coleta_completa()
                 if sucesso:
-                    print(f"\n{Cores.VERDE}🎉 Coleta completa concluída com sucesso!{Cores.RESET}")
+                    print(f"\n{Cores.VERDE}🎉 Full collection completed successfully!{Cores.RESET}")
                 pausar()
 
             elif escolha == "3":
-                # Coleta personalizada - escolher categorias
-                print(f"\n{Cores.CIANO}{Cores.BOLD}🎯 COLETA PERSONALIZADA{Cores.RESET}")
+                # Custom collection - choose categories
+                print(f"\n{Cores.CIANO}{Cores.BOLD}🎯 CUSTOM COLLECTION{Cores.RESET}")
                 print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-                print(f"\n{Cores.VERDE}📋 Escolha quais categorias deseja coletar:{Cores.RESET}")
-                print(f"   • Você pode selecionar categorias específicas")
-                print(f"   • Escolher modo teste (rápido) ou completo (ilimitado)")
+                print(f"\n{Cores.VERDE}📋 Choose which categories to collect:{Cores.RESET}")
+                print(f"   • Select specific categories")
+                print(f"   • Choose between test (quick) or full (complete) modes")
 
-                # Seleciona categorias
+                # Select categories
                 categorias = cli.selecionar_categorias_interativo()
                 if not categorias:
                     pausar()
                     continue
 
-                # Escolhe o modo
-                print(f"\n{Cores.VERDE}⚙️ MODO DE COLETA:{Cores.RESET}")
-                print(f"   {Cores.AMARELO}1.{Cores.RESET} 🧪 {Cores.BRANCO}Teste{Cores.RESET} - Rápido (5 produtos/categoria)")
-                print(f"   {Cores.AMARELO}2.{Cores.RESET} 🚀 {Cores.BRANCO}Completo{Cores.RESET} - Ilimitado (todos os produtos)")
+                # Choose mode
+                print(f"\n{Cores.VERDE}⚙️ COLLECTION MODE:{Cores.RESET}")
+                print(f"   {Cores.AMARELO}1.{Cores.RESET} 🧪 {Cores.BRANCO}Test{Cores.RESET} - Quick (5 products/category)")
+                print(f"   {Cores.AMARELO}2.{Cores.RESET} 🚀 {Cores.BRANCO}Full{Cores.RESET} - Unlimited (all products)")
 
-                modo_escolha = input(f"\n{Cores.MAGENTA}👉 Escolha o modo (1-2): {Cores.RESET}").strip()
+                modo_escolha = input(f"\n{Cores.MAGENTA}👉 Select mode (1-2): {Cores.RESET}").strip()
 
                 modo_teste = modo_escolha == "1"
-                modo_nome = "teste" if modo_teste else "completo"
+                modo_nome = "test" if modo_teste else "full"
 
-                print(f"\n{Cores.VERDE}✅ Modo selecionado: {Cores.BRANCO}{modo_nome.upper()}{Cores.RESET}")
+                print(f"\n{Cores.VERDE}✅ Mode selected: {Cores.BRANCO}{modo_nome.upper()}{Cores.RESET}")
 
-                confirmar = input(f"\n{Cores.MAGENTA}🤔 Iniciar coleta {modo_nome}? (s/N): {Cores.RESET}").lower()
+                confirmar = input(f"\n{Cores.MAGENTA}🤔 Start {modo_nome} collection? (y/N): {Cores.RESET}").lower()
 
-                if confirmar in ['s', 'sim', 'y', 'yes']:
+                if confirmar in {'y', 'yes', 's', 'sim'}:
                     sucesso = cli.executar_coleta(categorias, modo_teste)
                     if sucesso:
-                        print(f"\n{Cores.VERDE}🎉 Coleta personalizada concluída com sucesso!{Cores.RESET}")
+                        print(f"\n{Cores.VERDE}🎉 Custom collection completed successfully!{Cores.RESET}")
                 else:
-                    print(f"{Cores.AMARELO}⏭️  Operação cancelada{Cores.RESET}")
+                    print(f"{Cores.AMARELO}⏭️  Operation canceled{Cores.RESET}")
 
                 pausar()
 
             elif escolha == "4":
-                # Consulta interativa
-                print(f"\n{Cores.CIANO}{Cores.BOLD}🔍 CONSULTA INTERATIVA{Cores.RESET}")
+                # Interactive query
+                print(f"\n{Cores.CIANO}{Cores.BOLD}🔍 INTERACTIVE QUERY{Cores.RESET}")
                 print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-                print(f"\n{Cores.VERDE}📋 Filtros disponíveis:{Cores.RESET}")
-                print(f"   • Digite o nome da categoria (ex: Hortifruti)")
-                print(f"   • Digite o nome do produto (ex: leite)")
-                print(f"   • Deixe em branco para ver todos os dados")
+                print(f"\n{Cores.VERDE}📋 Available filters:{Cores.RESET}")
+                print(f"   • Enter a category name (e.g., Produce)")
+                print(f"   • Enter a product name (e.g., milk)")
+                print(f"   • Leave blank to show all data")
 
-                categoria = input(f"\n{Cores.MAGENTA}🏷️ Categoria (opcional): {Cores.RESET}").strip()
-                nome = input(f"{Cores.MAGENTA}🔍 Nome do produto (opcional): {Cores.RESET}").strip()
+                categoria = input(f"\n{Cores.MAGENTA}🏷️ Category (optional): {Cores.RESET}").strip()
+                nome = input(f"{Cores.MAGENTA}🔍 Product name (optional): {Cores.RESET}").strip()
 
                 filtros = {}
                 if categoria:
@@ -856,13 +859,13 @@ def main():
                 pausar()
 
             elif escolha == "7":
-                # Exportação interativa
-                print(f"\n{Cores.CIANO}{Cores.BOLD}💾 EXPORTAÇÃO INTERATIVA{Cores.RESET}")
+                # Interactive export
+                print(f"\n{Cores.CIANO}{Cores.BOLD}💾 INTERACTIVE EXPORT{Cores.RESET}")
                 print(f"{Cores.AZUL}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━{Cores.RESET}")
 
-                print(f"\n{Cores.VERDE}📋 Filtros para exportação:{Cores.RESET}")
-                categoria = input(f"{Cores.MAGENTA}🏷️ Categoria (opcional): {Cores.RESET}").strip()
-                nome = input(f"{Cores.MAGENTA}🔍 Nome do produto (opcional): {Cores.RESET}").strip()
+                print(f"\n{Cores.VERDE}📋 Filters for export:{Cores.RESET}")
+                categoria = input(f"{Cores.MAGENTA}🏷️ Category (optional): {Cores.RESET}").strip()
+                nome = input(f"{Cores.MAGENTA}🔍 Product name (optional): {Cores.RESET}").strip()
 
                 filtros = {}
                 if categoria:
@@ -878,8 +881,8 @@ def main():
                 pausar()
 
             elif escolha == "9":
-                # Mostra todas as categorias disponíveis
-                cli.listar_categorias()
+                # Show all categories
+                cli.list_categories()
                 pausar()
 
             elif escolha == "a":
@@ -887,99 +890,103 @@ def main():
                 pausar()
 
             elif escolha == "0":
-                print(f"\n{Cores.VERDE}👋 Obrigado por usar o Pão de Açúcar Scraping CLI!{Cores.RESET}")
-                print(f"{Cores.CIANO}🚀 Até a próxima!{Cores.RESET}\n")
+                print(f"\n{Cores.VERDE}👋 Thanks for using the Pão de Açúcar Scraping CLI!{Cores.RESET}")
+                print(f"{Cores.CIANO}🚀 See you next time!{Cores.RESET}\n")
                 break
 
             else:
-                print(f"\n{Cores.VERMELHO}❌ Opção inválida! Por favor, escolha entre 0-9 ou A{Cores.RESET}")
+                print(f"\n{Cores.VERMELHO}❌ Invalid option! Please choose between 0-9 or A{Cores.RESET}")
                 time.sleep(2)
 
     except KeyboardInterrupt:
-        print(f"\n\n{Cores.AMARELO}👋 Programa encerrado pelo usuário. Até logo!{Cores.RESET}\n")
+        print(f"\n\n{Cores.AMARELO}👋 Program terminated by user. See you soon!{Cores.RESET}\n")
     except Exception as e:
-        print(f"\n{Cores.VERMELHO}❌ Erro inesperado: {e}{Cores.RESET}")
-        logger.error(f"Erro no programa principal: {str(e)}")
+        print(f"\n{Cores.VERMELHO}❌ Unexpected error: {e}{Cores.RESET}")
+        logger.error(f"Unexpected error in main program: {str(e)}")
 
 # ============================================================================
-# 📋 EXEMPLOS DE USO VIA LINHA DE COMANDO (PARA COMPATIBILIDADE)
+# 📋 COMMAND-LINE USAGE EXAMPLES (LEGACY COMPATIBILITY)
 # ============================================================================
 def main_cli():
-    """Interface de linha de comando tradicional (para scripts)"""
+    """Traditional command-line interface (for scripting)."""
     parser = argparse.ArgumentParser(
-        description="🛒 Pão de Açúcar Scraping - Coleta de dados nutricionais",
+        description="🛒 Pão de Açúcar Scraping — Nutritional data collection",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Exemplos de uso:
-  python main.py listar-categorias
+Examples:
+  python main.py list-categories
   python main.py coletar --categorias 1 2 3 --teste
-  python main.py consultar --categoria "Hortifruti"
-  python main.py exportar --categoria "Doces" --formato excel
+  python main.py consultar --categoria "Produce"
+  python main.py exportar --categoria "Snacks" --formato excel
   python main.py estatisticas
         """
     )
 
-    subparsers = parser.add_subparsers(dest='comando', help='Comandos disponíveis')
+    subparsers = parser.add_subparsers(dest='comando', help='Available commands')
 
-    # Comando: listar categorias
-    subparsers.add_parser('listar-categorias', help='Lista todas as categorias disponíveis')
+    # Command: list categories
+    subparsers.add_parser(
+        'list-categories',
+        aliases=['listar-categorias'],
+        help='List all available categories'
+    )
 
-    # Comando: coletar
-    coletar_parser = subparsers.add_parser('coletar', help='Coleta dados nutricionais')
+    # Command: collect
+    coletar_parser = subparsers.add_parser('coletar', help='Collect nutritional data')
     coletar_parser.add_argument('--categorias', nargs='+', required=True,
-                               help='IDs das categorias para coletar (ex: 1 2 3)')
+                               help='Category IDs to collect (e.g., 1 2 3)')
     coletar_parser.add_argument('--teste', action='store_true',
-                               help='Modo teste (coleta limitada)')
+                               help='Test mode (limited collection)')
 
-    # Comando: consultar
-    consultar_parser = subparsers.add_parser('consultar', help='Consulta dados coletados')
-    consultar_parser.add_argument('--categoria', help='Filtrar por categoria')
-    consultar_parser.add_argument('--nome', help='Filtrar por nome do produto')
+    # Command: query
+    consultar_parser = subparsers.add_parser('consultar', help='Query collected data')
+    consultar_parser.add_argument('--categoria', help='Filter by category name')
+    consultar_parser.add_argument('--nome', help='Filter by product name')
 
-    # Comando: exportar
-    exportar_parser = subparsers.add_parser('exportar', help='Exporta dados para arquivo')
-    exportar_parser.add_argument('--categoria', help='Filtrar por categoria')
-    exportar_parser.add_argument('--nome', help='Filtrar por nome do produto')
+    # Command: export
+    exportar_parser = subparsers.add_parser('exportar', help='Export data to a file')
+    exportar_parser.add_argument('--categoria', help='Filter by category name')
+    exportar_parser.add_argument('--nome', help='Filter by product name')
     exportar_parser.add_argument('--formato', choices=['excel', 'csv'], default='excel',
-                                help='Formato de exportação (padrão: excel)')
+                                help='Export format (default: excel)')
 
-    # Comando: estatisticas
-    subparsers.add_parser('estatisticas', help='Mostra estatísticas dos dados coletados')
+    # Command: statistics
+    subparsers.add_parser('estatisticas', help='Show statistics from the collected data')
 
-    # Parse dos argumentos
+    # Parse arguments
     args = parser.parse_args()
 
-    # Se nenhum comando foi fornecido, usa interface interativa
+    # No command provided: fall back to interactive interface
     if not args.comando:
         main()
         return
 
-    # Inicializa o CLI
+    # Initialize CLI
     cli = PaoDeAcucarCLI()
 
     try:
-        if args.comando == 'listar-categorias':
-            cli.listar_categorias()
+        if args.comando in {'list-categories', 'listar-categorias'}:
+            cli.list_categories()
 
         elif args.comando == 'coletar':
-            # Valida categorias
+            # Validate categories
             categorias = cli.validar_categorias(args.categorias)
             if not categorias:
-                print("❌ Nenhuma categoria válida selecionada")
+                print("❌ No valid categories selected")
                 return
 
-            # Coleta URLs
+            # Collect URLs
             urls = cli.coletar_urls(categorias, args.teste)
 
             if urls:
-                # Extrai dados nutricionais
+                # Extract nutritional data
                 sucesso = cli.extrair_dados_nutricionais(urls)
                 if sucesso:
-                    print("\n🎉 Coleta concluída com sucesso!")
+                    print("\n🎉 Collection completed successfully!")
                 else:
-                    print("\n❌ Erro durante a coleta")
+                    print("\n❌ Error during collection")
             else:
-                print("\n❌ Nenhuma URL coletada")
+                print("\n❌ No URLs collected")
 
         elif args.comando == 'consultar':
             filtros = {}
@@ -999,17 +1006,17 @@ Exemplos de uso:
             if args.formato == 'excel':
                 cli.exportar_excel(filtros)
             else:
-                print("❌ Formato CSV ainda não implementado")
+                print("❌ CSV output not implemented yet")
 
         elif args.comando == 'estatisticas':
             cli.mostrar_estatisticas()
 
     except KeyboardInterrupt:
-        print("\n\n⚠️ Operação interrompida pelo usuário")
+        print("\n\n⚠️ Operation interrupted by user")
         return
     except Exception as e:
-        print(f"\n❌ Erro inesperado: {str(e)}")
-        logger.error(f"Erro no CLI: {str(e)}")
+        print(f"\n❌ Unexpected error: {str(e)}")
+        logger.error(f"Error in CLI: {str(e)}")
         return
 
 if __name__ == "__main__":

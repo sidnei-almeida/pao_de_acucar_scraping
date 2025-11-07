@@ -7,46 +7,46 @@
 [![Pandas](https://img.shields.io/badge/pandas-latest-blue.svg?style=for-the-badge&logo=pandas&logoColor=white)](https://pandas.pydata.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-**Sistema Profissional de Coleta Automatizada de Dados Nutricionais**
+**Professional CLI for Automated Nutritional Data Collection**
 
-[🚀 Começar](#-instalação-rápida) • [📖 Documentação](#-documentação-completa) • [🛒 Categorias](#-categorias-disponíveis) • [💬 Suporte](#-contato-e-suporte)
+[🚀 Quick Start](#-quick-setup) • [📖 Docs](#-complete-documentation) • [🛒 Categories](#-available-categories) • [💬 Support](#-contact--support)
 
 ---
 
 </div>
 
-## 🎯 Visão Geral
+## 🎯 Overview
 
-O **Pão de Açúcar Scraping CLI** é uma ferramenta avançada de linha de comando desenvolvida para coletar dados nutricionais completos de produtos do supermercado Pão de Açúcar. Utilizando tecnologias modernas como Selenium e Pandas, oferece uma interface elegante e funcionalidades robustas para análise de dados nutricionais.
+The **Pão de Açúcar Scraping CLI** is a command-line tool designed to collect complete nutritional data for products sold by Pão de Açúcar, a premium Brazilian grocery chain known for its curated selection of fresh produce, gourmet items, and wine. This project was crafted as a portfolio piece for North American employers to demonstrate robust data engineering, automation, and user experience capabilities.
 
-### ✨ Características Principais
+### ✨ Highlight Features
 
 <table>
 <tr>
 <td width="50%">
 
-**🎨 Interface Elegante**
-- CLI interativo com cores e animações
-- Barras de progresso em tempo real
-- Sistema de cores ANSI profissional
+**🎨 Polished Interface**
+- Colorful, animated CLI experience
+- Real-time progress bars
+- Professional ANSI color system
 
-**⚡ Performance Otimizada**
-- Sistema de checkpoint inteligente
-- Filtragem automática de produtos
-- Gestão avançada de memória
+**⚡ Performance Tuned**
+- Smart checkpoint system
+- Automatic product filtering
+- Advanced memory management
 
 </td>
 <td width="50%">
 
-**📊 Análise Avançada**
-- Estatísticas detalhadas dos dados
-- Consultas com filtros múltiplos
-- Exportação para Excel/CSV
+**📊 Advanced Analytics**
+- Detailed dataset statistics
+- Multi-filter query engine
+- Excel/CSV export pipeline
 
-**🛡️ Robustez**
-- Recuperação automática de crashes
-- Tratamento inteligente de erros
-- Logs detalhados e organizados
+**🛡️ Reliability**
+- Automatic crash recovery
+- Resilient error handling
+- Structured, readable logs
 
 </td>
 </tr>
@@ -54,223 +54,223 @@ O **Pão de Açúcar Scraping CLI** é uma ferramenta avançada de linha de coma
 
 ---
 
-## 🚀 Instalação Rápida
+## 🚀 Quick Setup
 
-### 📋 Pré-requisitos
+### 📋 Requirements
 
-- **Python 3.8+** com pip
-- **Google Chrome** ou Chromium
-- **Conexão estável** com a internet
+- **Python 3.8+** with pip
+- **Google Chrome** or Chromium
+- **Stable internet** connection
 
-### ⚡ Setup Automático
+### ⚡ Automatic Setup
 
 ```bash
-# 1. Clone o repositório
+# 1. Clone the repository
 git clone https://github.com/sidnei-almeida/pao_de_acucar_scraping.git
 cd pao_de_acucar_scraping
 
-# 2. Instale as dependências
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Execute o sistema
+# 3. Run the CLI
 python main.py
 ```
 
-### 🔧 Setup com Ambiente Virtual (Recomendado)
+### 🔧 Virtual Environment Setup (Recommended)
 
 ```bash
-# Criar ambiente virtual
+# Create a virtual environment
 python -m venv venv
 
-# Ativar ambiente virtual
-# Linux/Mac:
+# Activate the virtual environment
+# Linux/Mac
 source venv/bin/activate
-# Windows:
+# Windows
 venv\Scripts\activate
 
-# Instalar dependências
+# Install dependencies
 pip install -r requirements.txt
 ```
 
 ---
 
-## 📖 Documentação Completa
+## 📖 Complete Documentation
 
-### 🎮 Modo Interativo
+### 🎮 Interactive Mode
 
-Execute o sistema em modo interativo para uma experiência completa:
+Launch the interactive mode for the full CLI experience:
 
 ```bash
 python main.py
 ```
 
 <details>
-<summary><b>📋 Menu Interativo Completo</b></summary>
+<summary><b>📋 Full Interactive Menu</b></summary>
 
 ```
-🛒 OPERAÇÕES DE COLETA:
-  1. 🧪 Modo Teste          - Coleta rápida para validação
-  2. 🚀 Coleta Completa      - Extração completa de dados
-  3. 🎯 Coleta Personalizada - Escolher categorias específicas
+🛒 COLLECTION OPERATIONS:
+  1. 🧪 Test Mode              - Quick run for validation
+  2. 🚀 Full Collection        - Crawl every product
+  3. 🎯 Custom Collection      - Select specific categories
 
-📊 CONSULTA E ANÁLISE:
-  4. 🔍 Consultar Dados  - Visualizar informações coletadas
-  5. 📈 Estatísticas     - Análise e métricas detalhadas
-  6. 📋 Listar Arquivos  - Ver arquivos gerados
+📊 QUERY & ANALYTICS:
+  4. 🔍 Browse Data        - View collected records
+  5. 📈 Statistics         - Detailed metrics & insights
+  6. 📋 List Files         - Review generated files
 
-📁 GERENCIAMENTO:
-  7. 💾 Exportar Excel   - Salvar dados em formato Excel
-  8. 🗑️ Limpar Dados     - Remover arquivos antigos
+📁 MANAGEMENT:
+  7. 💾 Export to Excel    - Save results as Excel
+  8. 🗑️ Clear Data         - Delete old exports
 
-ℹ️ INFORMAÇÕES:
-  9. 🛒 Ver Categorias   - Lista as 16 categorias disponíveis
-  A. 📖 Sobre           - Informações do programa
-  0. ❌ Sair            - Encerrar programa
+ℹ️ INFORMATION:
+  9. 🛒 View Categories    - See all 16 available categories
+  A. 📖 About              - Program information
+  0. ❌ Exit               - Close the CLI
 ```
 
 </details>
 
-### 💻 Comandos de Linha de Comando
+### 💻 Command-Line Usage
 
-#### 📋 Listar Categorias Disponíveis
+#### 📋 List Available Categories
 ```bash
 python main.py listar-categorias
 ```
 
-#### 🧪 Coleta em Modo Teste (Rápido)
+#### 🧪 Test Collection (Quick)
 ```bash
 python main.py coletar --categorias 1 2 3 --teste
 ```
 
-#### 🚀 Coleta Completa
+#### 🚀 Full Collection
 ```bash
 python main.py coletar --categorias 1 2 3 4 5
 ```
 
-#### 🔍 Consultar Dados Coletados
+#### 🔍 Browse Collected Data
 ```bash
-# Consultar todos os dados
+# View all data
 python main.py consultar
 
-# Filtrar por categoria
-python main.py consultar --categoria "Hortifruti"
+# Filter by category
+python main.py consultar --categoria "Produce"
 
-# Filtrar por nome do produto
-python main.py consultar --nome "leite"
+# Filter by product name
+python main.py consultar --nome "milk"
 
-# Múltiplos filtros
-python main.py consultar --categoria "Doces" --nome "chocolate"
+# Combine filters
+python main.py consultar --categoria "Snacks" --nome "chocolate"
 ```
 
-#### 💾 Exportar para Excel
+#### 💾 Export to Excel
 ```bash
-# Exportar todos os dados
+# Export everything
 python main.py exportar --formato excel
 
-# Exportar dados filtrados
-python main.py exportar --categoria "Bebidas" --formato excel
+# Export filtered data
+python main.py exportar --categoria "Beverages" --formato excel
 ```
 
-#### 📊 Visualizar Estatísticas
+#### 📊 View Statistics
 ```bash
 python main.py estatisticas
 ```
 
 ---
 
-## 🛒 Categorias Disponíveis
+## 🛒 Available Categories
 
-### 🍽️ Alimentos - Categorias Específicas (1-13)
+### 🍽️ Food – Specific Categories (1-13)
 
 <table>
 <tr>
 <td width="33%">
 
-**1. 🛒 Açougue**
-- Carnes bovinas, suínas, aves
-- Derivados e embutidos
+**1. 🛒 Butcher**
+- Beef, pork, poultry
+- Specialty and cured meats
 
-**2. 🧊 Alimentos Congelados**
-- Refeições prontas
-- Vegetais congelados, pizzas
+**2. 🧊 Frozen Foods**
+- Ready-made meals
+- Frozen veggies, pizzas
 
-**3. 🥛 Alimentos Refrigerados**
-- Laticínios, frios
-- Iogurtes, queijos
+**3. 🥛 Refrigerated Foods**
+- Dairy and deli items
+- Yogurts, cheeses
 
-**4. 🏠 Básicos da Despensa**
-- Arroz, feijão, açúcar
-- Sal, óleo, temperos básicos
+**4. 🏠 Pantry Staples**
+- Rice, beans, sugar
+- Salt, oil, base seasonings
 
-**5. 🌾 Cereais**
-- Cereais matinais
-- Granolas, barras de cereal
-
-</td>
-<td width="33%">
-
-**6. 📦 Complemento da Despensa**
-- Molhos, temperos
-- Especiarias, conservas
-
-**7. 🍰 Doces e Sobremesas**
-- Chocolates, balas
-- Bolos, pudins, gelatinas
-
-**8. 🥬 Hortifruti**
-- Frutas frescas
-- Verduras, legumes
-
-**9. 🧂 Mercearia Salgada**
-- Massas, enlatados
-- Sopas, caldos
-
-**10. 🍞 Padaria**
-- Pães, bolos
-- Tortas, biscoitos
+**5. 🌾 Cereals**
+- Breakfast cereals
+- Granola, cereal bars
 
 </td>
 <td width="33%">
 
-**11. 🐟 Peixaria**
-- Peixes frescos
-- Frutos do mar
+**6. 📦 Pantry Add-ons**
+- Sauces and seasonings
+- Spices, preserves
+
+**7. 🍰 Sweets & Desserts**
+- Chocolates, candies
+- Cakes, puddings, gelatins
+
+**8. 🥬 Produce**
+- Fresh fruit
+- Greens and vegetables
+
+**9. 🧂 Savory Grocery**
+- Pasta, canned goods
+- Soups, broths
+
+**10. 🍞 Bakery**
+- Breads and cakes
+- Pies, cookies
+
+</td>
+<td width="33%">
+
+**11. 🐟 Seafood**
+- Fresh fish
+- Shellfish and more
 
 **12. 🍗 Rotisserie**
-- Frango assado
-- Carnes preparadas
+- Roasted chicken
+- Prepared meats
 
-**13. 🥨 Salgadinhos e Aperitivos**
-- Chips, amendoins
-- Snacks diversos
+**13. 🥨 Snacks & Appetizers**
+- Chips, peanuts
+- Assorted snacks
 
 </td>
 </tr>
 </table>
 
-### 🌟 Categorias Expandidas (14-16)
+### 🌟 Expanded Categories (14-16)
 
 <table>
 <tr>
 <td width="33%">
 
-**14. 🍽️ Alimentos (Geral)**
-- Todos os produtos de alimentos
-- Categoria unificada
+**14. 🍽️ Food (All Items)**
+- Consolidated food catalog
+- Every food product
 
 </td>
 <td width="33%">
 
-**15. 🥤 Bebidas**
-- Vinhos, cervejas
-- Refrigerantes, sucos, águas
+**15. 🥤 Beverages**
+- Wine, beer
+- Soda, juice, water
 
 </td>
 <td width="33%">
 
 **16. 🇧🇷 Caras do Brasil**
-- Produtos brasileiros
-- Selecionados e artesanais
+- Premium Brazilian products
+- Curated, artisanal selection
 
 </td>
 </tr>
@@ -278,40 +278,40 @@ python main.py estatisticas
 
 ---
 
-## 📊 Dados Coletados
+## 📊 Collected Data
 
-### 🎯 Informações por Produto
+### 🎯 Product-Level Information
 
 <table>
 <tr>
 <td width="50%">
 
-**📝 Identificação**
-- Nome completo do produto
-- URL da página do produto
-- Categoria de classificação
-- **Código de Barras (GTIN/EAN)**
+**📝 Identification**
+- Full product name
+- Product page URL
+- Category assignment
+- **Barcode (GTIN/EAN)**
 
-**🥗 Informações Nutricionais**
-- Porção recomendada (g/ml)
-- Valor calórico (kcal)
-- Carboidratos totais (g)
-- Proteínas (g)
+**🥗 Nutritional Facts**
+- Recommended serving (g/ml)
+- Calories (kcal)
+- Total carbohydrates (g)
+- Protein (g)
 
 </td>
 <td width="50%">
 
-**🧈 Composição Detalhada**
-- Gorduras totais (g)
-- Gorduras saturadas (g)
-- Fibras alimentares (g)
-- Açúcares totais (g)
-- Sódio (mg)
+**🧈 Detailed Composition**
+- Total fat (g)
+- Saturated fat (g)
+- Dietary fiber (g)
+- Total sugars (g)
+- Sodium (mg)
 
-**📅 Metadados**
-- Data e hora da coleta
-- Status de validação
-- Fonte dos dados
+**📅 Metadata**
+- Collection timestamp
+- Validation status
+- Data source
 
 </td>
 </tr>
@@ -319,101 +319,101 @@ python main.py estatisticas
 
 ---
 
-## 🛡️ Sistema de Checkpoint e Recuperação
+## 🛡️ Checkpoint & Recovery System
 
-### ⚡ Características Avançadas
+### ⚡ Advanced Capabilities
 
 <table>
 <tr>
 <td width="50%">
 
-**🔄 Checkpoint Automático**
-- Salvamento a cada 1.000 produtos
-- Prevenção de perda de dados
-- Recuperação inteligente
+**🔄 Smart Checkpoints**
+- Saves every 1,000 products
+- Prevents data loss
+- Guided recovery flow
 
-**🧠 Gestão de Memória**
-- Reinício periódico do navegador
-- Liberação automática de recursos
-- Otimização de performance
+**🧠 Memory Management**
+- Periodic browser resets
+- Automatic resource cleanup
+- Performance optimized
 
 </td>
 <td width="50%">
 
-**🛡️ Robustez**
-- Até 3 tentativas de recuperação
-- Tratamento inteligente de erros
-- Logs detalhados organizados
+**🛡️ Reliability**
+- Up to 3 recovery attempts
+- Intelligent error handling
+- Highly structured logs
 
-**📊 Estatísticas de Confiabilidade**
-- Perda máxima: 1.000 produtos
-- Taxa de sucesso: 99.5%+
-- Tempo médio de recuperação: <30s
+**📊 Trust Metrics**
+- Worst-case loss: 1,000 products
+- Success rate: 99.5%+
+- Average recovery time: <30s
 
 </td>
 </tr>
 </table>
 
-Para detalhes técnicos completos: **[SISTEMA_CHECKPOINT.md](SISTEMA_CHECKPOINT.md)**
+Full technical breakdown: **[CHECKPOINT_SYSTEM.md](CHECKPOINT_SYSTEM.md)**
 
 ---
 
-## 📁 Estrutura de Arquivos
+## 📁 Project Structure
 
 ```
 pao_de_acucar_scraping/
-├── 📁 dados_coletados/              # Dados coletados
-│   ├── dados_nutricionais.csv       # Arquivo principal
-│   ├── consulta_*.csv               # Consultas filtradas
-│   └── dados_nutricionais_*.xlsx   # Exports Excel
-├── 📁 logs/                         # Logs organizados
-│   ├── README.md                    # Documentação dos logs
-│   └── scraping_*.log              # Logs de execução
-├── 📄 main.py                       # CLI principal
-├── 📄 scraper.py                    # Motor de scraping
-├── 📄 url_collector.py              # Coletor de URLs
-├── 📄 scraping_log.py               # Sistema de logs
-└── 📄 requirements.txt              # Dependências
+├── 📁 dados_coletados/              # Collected datasets
+│   ├── dados_nutricionais.csv       # Main dataset
+│   ├── consulta_*.csv               # Filtered exports
+│   └── dados_nutricionais_*.xlsx   # Excel exports
+├── 📁 logs/                         # Organized logs
+│   ├── README.md                    # Log documentation
+│   └── scraping_*.log              # Execution logs
+├── 📄 main.py                       # Primary CLI
+├── 📄 scraper.py                    # Scraping engine
+├── 📄 url_collector.py              # URL collector
+├── 📄 scraping_log.py               # Logging system
+└── 📄 requirements.txt              # Dependencies
 ```
 
 ---
 
-## ⚠️ Observações Importantes
+## ⚠️ Key Considerations
 
-### 🎯 Filtragem Inteligente
-- **Produtos sem tabela nutricional** são automaticamente ignorados
-- **Redução de tempo**: 30-65% em categorias mistas
-- **Qualidade garantida**: Apenas produtos com dados válidos
+### 🎯 Intelligent Filtering
+- **Products missing nutrition labels** are automatically skipped
+- **Time savings**: 30–65% in mixed categories
+- **Data quality**: Only valid nutritional data is persisted
 
-### ⚡ Performance e Confiabilidade
-- **Conexão estável** recomendada para coletas longas
-- **Interrupção segura** com Ctrl+C
-- **Modo teste** para validações rápidas
-- **Sistema de checkpoint** previne perda de dados
+### ⚡ Performance & Reliability
+- **Stable connection** recommended for long runs
+- **Safe interruption** with Ctrl+C
+- **Test mode** for quick QA loops
+- **Checkpoint system** to prevent data loss
 
-### 📊 Qualidade dos Dados
-- **Validação automática** de informações nutricionais
-- **Padronização** de formatos e unidades
-- **Rastreabilidade** completa dos dados coletados
+### 📊 Data Quality
+- **Automatic validation** of nutritional facts
+- **Standardized** units and formats
+- **Full traceability** for collected data
 
 ---
 
-## 🔧 Tecnologias Utilizadas
+## 🔧 Tech Stack
 
 <table>
 <tr>
 <td width="25%">
 
 **🐍 Python 3.8+**
-- Linguagem principal
-- Tipagem estática
+- Core programming language
+- Static typing hints
 - Async/await support
 
 </td>
 <td width="25%">
 
 **🌐 Selenium 4.0+**
-- Automação web
+- Browser automation
 - JavaScript execution
 - Dynamic content handling
 
@@ -421,17 +421,17 @@ pao_de_acucar_scraping/
 <td width="25%">
 
 **📊 Pandas**
-- Manipulação de dados
-- Análise estatística
-- Export para Excel/CSV
+- Data wrangling
+- Statistical analysis
+- Excel/CSV exports
 
 </td>
 <td width="25%">
 
 **🎨 BeautifulSoup**
-- Parsing HTML
-- Extração de dados
-- Limpeza de conteúdo
+- HTML parsing
+- Data extraction
+- Content cleanup
 
 </td>
 </tr>
@@ -439,30 +439,30 @@ pao_de_acucar_scraping/
 
 ---
 
-## 📈 Roadmap e Melhorias Futuras
+## 📈 Roadmap & Future Work
 
-### 🚀 Próximas Funcionalidades
+### 🚀 Upcoming Features
 
-- [ ] **API REST** para integração externa
-- [ ] **Dashboard web** para visualização
-- [ ] **Machine Learning** para análise nutricional
-- [ ] **Comparação de preços** entre produtos
-- [ ] **Alertas nutricionais** personalizados
-- [ ] **Integração com apps** de saúde
+- [ ] **REST API** for external integrations
+- [ ] **Web dashboard** for visualization
+- [ ] **Machine learning** nutritional insights
+- [ ] **Price comparison** across products
+- [ ] **Personalized nutrition alerts**
+- [ ] **Health app integrations**
 
-### 🔄 Melhorias Contínuas
+### 🔄 Continuous Improvements
 
-- [ ] **Performance**: Otimização de velocidade
-- [ ] **UI/UX**: Interface ainda mais intuitiva
-- [ ] **Documentação**: Guias avançados
-- [ ] **Testes**: Cobertura completa
-- [ ] **CI/CD**: Automação de deploy
+- [ ] **Performance**: Faster crawls
+- [ ] **UI/UX**: Even smoother CLI experience
+- [ ] **Documentation**: Advanced guides
+- [ ] **Testing**: Broader coverage
+- [ ] **CI/CD**: Automated deployments
 
 ---
 
-## 💬 Contato e Suporte
+## 💬 Contact & Support
 
-### 👨‍💻 Desenvolvedor
+### 👨‍💻 Developer
 
 <div align="center">
 
@@ -474,25 +474,25 @@ pao_de_acucar_scraping/
 
 </div>
 
-### 📞 Canais de Suporte
+### 📞 Support Channels
 
-- **🐛 Reportar Bugs**: [GitHub Issues](https://github.com/sidnei-almeida/pao_de_acucar_scraping/issues)
-- **💡 Sugestões**: [GitHub Discussions](https://github.com/sidnei-almeida/pao_de_acucar_scraping/discussions)
-- **📧 Contato Direto**: sidnei.almeida1806@gmail.com
+- **🐛 Report Bugs**: [GitHub Issues](https://github.com/sidnei-almeida/pao_de_acucar_scraping/issues)
+- **💡 Suggestions**: [GitHub Discussions](https://github.com/sidnei-almeida/pao_de_acucar_scraping/discussions)
+- **📧 Direct Contact**: sidnei.almeida1806@gmail.com
 
 ---
 
 <div align="center">
 
-### ⭐ Se este projeto foi útil para você, considere dar uma estrela!
+### ⭐ If this project helped you, please leave a star!
 
-**Desenvolvido com ❤️ por [Sidnei Almeida](https://github.com/sidnei-almeida)**
+**Built with ❤️ by [Sidnei Almeida](https://github.com/sidnei-almeida)**
 
 [![GitHub stars](https://img.shields.io/github/stars/sidnei-almeida/pao_de_acucar_scraping?style=social)](https://github.com/sidnei-almeida/pao_de_acucar_scraping/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/sidnei-almeida/pao_de_acucar_scraping?style=social)](https://github.com/sidnei-almeida/pao_de_acucar_scraping/network)
 
 ---
 
-**📄 Licença**: MIT • **🔗 Repositório**: [GitHub](https://github.com/sidnei-almeida/pao_de_acucar_scraping)
+**📄 License**: MIT • **🔗 Repository**: [GitHub](https://github.com/sidnei-almeida/pao_de_acucar_scraping)
 
 </div>

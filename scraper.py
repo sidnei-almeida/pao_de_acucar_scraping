@@ -23,27 +23,27 @@ class Scraper:
         self.configurar_driver()
     
     def cancelar(self):
-        """Marca o scraper para cancelamento"""
+        """Flag the scraper for cancellation."""
         self.cancelado = True
         self.fechar_driver()
     
     def configurar_driver(self):
-        """Inicializa o driver do navegador."""
+        """Initialize the browser driver if needed."""
         if not self.driver:
             self.driver = configurar_driver()
         return self.driver
     
     def fechar_driver(self):
-        """Fecha o driver do navegador."""
+        """Close and dispose of the browser driver."""
         if self.driver:
             self.driver.quit()
             self.driver = None
 
     def get_estatisticas_ignorados(self):
-        """Retorna estatísticas de produtos ignorados durante a coleta.
-        
+        """Return statistics for products skipped during collection.
+
         Returns:
-            dict: Estatísticas com total e lista de produtos ignorados
+            dict: Payload containing the total count and full ignored list
         """
         return {
             'total': len(self.produtos_ignorados),
@@ -51,31 +51,31 @@ class Scraper:
         }
     
     def limpar_estatisticas(self):
-        """Limpa a lista de produtos ignorados."""
+        """Reset the ignored-products list."""
         self.produtos_ignorados = []
 
     def extrair_nome_da_url(self, url):
-        """Extrai o nome do produto da URL."""
+        """Extract a product name slug from its URL."""
         try:
-            # Pega a última parte da URL após a última barra
+            # Capture the last URL segment
             nome = url.split('/')[-1]
-            # Remove qualquer parâmetro de query
+            # Remove query params if present
             nome = nome.split('?')[0]
-            # Substitui hífens por espaços
+            # Replace hyphens for readability
             nome = nome.replace('-', ' ')
             return nome.strip()
         except:
-            return "Nome não encontrado"
+            return "Name not found"
 
     def extrair_valor_numerico(self, texto):
-        """Extrai apenas o valor numérico e a unidade de um texto."""
-        if not texto or texto == "Sem informação":
+        """Extract the numeric value (and unit) from the provided text."""
+        if not texto or texto == "No information":
             return texto
         
-        # Remove espaços extras e caracteres especiais
+        # Remove extra whitespace and special characters
         texto = texto.strip()
         
-        # Tenta extrair número e unidade
+        # Attempt to extract the number + optional unit
         match = re.search(r'([\d,.]+)\s*([a-zA-Z%]+)?', texto)
         if match:
             numero = match.group(1)
@@ -85,35 +85,35 @@ class Scraper:
         return texto
 
     def extrair_codigo_barras(self, html_source):
-        """Extrai o código de barras (GTIN/EAN) do HTML do produto.
-        
-        Tenta primeiro via regex (mais rápido), depois via parser JSON-LD (mais robusto).
-        
+        """Extract the product barcode (GTIN/EAN) from the page HTML.
+
+        Strategy: try regex first (fast path), then JSON-LD parsing (robust fallback).
+
         Args:
-            html_source (str): Código HTML completo da página
-            
+            html_source (str): Full HTML source
+
         Returns:
-            str: Código de barras encontrado ou None se não encontrado
+            str | None: Barcode when available, otherwise None
         """
         import json
         
-        # Método 1: Regex - busca rápida por gtin8 ou ean
+        # Strategy 1: Regex — quick lookup for gtin8 or ean fields
         try:
             match_gtin = re.search(r'"gtin8"\s*:\s*"(\d+)"', html_source)
             if match_gtin:
                 codigo = match_gtin.group(1)
-                logger.debug(f"Código de barras encontrado via regex (gtin8): {codigo}")
+                logger.debug(f"Barcode found via regex (gtin8): {codigo}")
                 return codigo
             
             match_ean = re.search(r'"ean"\s*:\s*"(\d+)"', html_source)
             if match_ean:
                 codigo = match_ean.group(1)
-                logger.debug(f"Código de barras encontrado via regex (ean): {codigo}")
+                logger.debug(f"Barcode found via regex (ean): {codigo}")
                 return codigo
         except Exception as e:
-            logger.warning(f"Erro ao extrair código via regex: {e}")
+            logger.warning(f"Failed to extract barcode via regex: {e}")
         
-        # Método 2: Parser JSON-LD (fallback)
+        # Strategy 2: JSON-LD parsing (fallback)
         try:
             from bs4 import BeautifulSoup
             soup = BeautifulSoup(html_source, 'html.parser')
@@ -126,46 +126,46 @@ class Scraper:
                         if data.get('@type') == 'Product':
                             gtin = data.get('gtin8') or data.get('ean')
                             if gtin:
-                                logger.debug(f"Código de barras encontrado via JSON-LD: {gtin}")
+                                logger.debug(f"Barcode found via JSON-LD: {gtin}")
                                 return gtin
                 except json.JSONDecodeError:
                     continue
                 except Exception:
                     continue
         except Exception as e:
-            logger.warning(f"Erro ao extrair código via JSON-LD: {e}")
+            logger.warning(f"Failed to extract barcode via JSON-LD: {e}")
         
         return None
 
     def extrair_marca(self):
-        """Extrai a marca do produto do dropdown 'Característica Geral'.
-        
-        Similar ao dropdown da tabela nutricional, precisa clicar para expandir
-        e então buscar o campo 'Marca' dentro dele.
-        
+        """Extract the product brand from the “Característica Geral” dropdown.
+
+        Similar to the nutrition facts accordion, it must expand the section
+        before reading the "Marca" field inside it.
+
         Returns:
-            str: Marca do produto ou string vazia se não encontrado
+            str: Brand name or empty string when not found
         """
         try:
-            # Tenta encontrar e clicar no dropdown "Característica Geral"
+            # Attempt to locate and expand the “Característica Geral” dropdown
             try:
-                # Aguarda até que o dropdown esteja presente
+                # Wait until the dropdown element is present
                 wait = WebDriverWait(self.driver, 10)
                 dropdown = wait.until(EC.presence_of_element_located((
                     By.XPATH, 
                     "//p[contains(text(), 'Característica Geral')]/parent::div"
                 )))
                 
-                # Clica no dropdown para expandir
+                # Expand the dropdown
                 self.driver.execute_script("arguments[0].click();", dropdown)
-                time.sleep(1)  # Aguarda a expansão
+                time.sleep(1)  # Wait for animation
                 
-                logger.debug("Dropdown 'Característica Geral' expandido com sucesso")
+                logger.debug("Successfully expanded 'Característica Geral' dropdown")
             except Exception as e:
-                logger.debug(f"Não foi possível expandir o dropdown 'Característica Geral': {e}")
+                logger.debug(f"Could not expand 'Característica Geral' dropdown: {e}")
                 return ''
             
-            # Busca o campo "Marca" usando JavaScript
+            # Query for the “Marca” field using JavaScript
             marca = self.driver.execute_script("""
                 // Busca todos os elementos que contêm o texto "Marca"
                 const elementos = document.querySelectorAll('p, td, th, span, div');
@@ -208,29 +208,28 @@ class Scraper:
             """)
             
             if marca:
-                logger.info(f"Marca encontrada: {marca}")
+                logger.info(f"Brand found: {marca}")
                 return marca
             else:
-                logger.warning("Marca não encontrada no dropdown 'Característica Geral'")
+                logger.warning("Brand not found under 'Característica Geral'")
                 return ''
                 
         except Exception as e:
-            logger.warning(f"Erro ao extrair marca: {e}")
+            logger.warning(f"Failed to extract brand: {e}")
             return ''
 
     def verificar_tabela_nutricional(self, html_source):
-        """Verifica se o produto possui tabela nutricional.
-        
-        Faz uma verificação rápida no HTML para detectar presença de informações
-        nutricionais antes de processar o produto completamente.
-        
+        """Check whether the product exposes a nutrition table.
+
+        Lightweight HTML scan used before performing a full extraction.
+
         Args:
-            html_source (str): Código HTML completo da página
-            
+            html_source (str): Full HTML source
+
         Returns:
-            bool: True se encontrar indicações de tabela nutricional, False caso contrário
+            bool: True when nutrition hints exist, False otherwise
         """
-        # Lista de palavras-chave que indicam presença de tabela nutricional
+        # Keywords signaling the presence of nutritional information
         keywords = [
             'tabela nutricional',
             'informação nutricional',
@@ -244,59 +243,59 @@ class Scraper:
         
         html_lower = html_source.lower()
         
-        # Se encontrar qualquer palavra-chave, provável que tenha tabela
+        # If any keyword appears, it likely has a nutrition table
         for keyword in keywords:
             if keyword in html_lower:
-                logger.debug(f"Palavra-chave nutricional encontrada: '{keyword}'")
+                logger.debug(f"Nutrition keyword found: '{keyword}'")
                 return True
         
-        logger.debug("Nenhuma palavra-chave nutricional encontrada no HTML")
+        logger.debug("No nutrition keywords detected in HTML")
         return False
 
     def extrair_dados_nutricionais(self, url, categoria=None):
-        """Extrai dados nutricionais de um produto"""
+        """Extract the nutritional profile of a product page."""
         if self.cancelado:
-            logger.warning("Operação cancelada")
+            logger.warning("Operation cancelled by user")
             return None
             
         try:
             if not self.driver:
                 self.configurar_driver()
 
-            logger.info(f"Processando URL: {url}")
+            logger.info(f"Processing URL: {url}")
             self.driver.get(url)
-            time.sleep(10)  # Espera a página carregar
+            time.sleep(10)  # Give the page time to settle
 
-            # Captura o HTML da página
+            # Capture page HTML
             html_source = self.driver.page_source
 
-            # VERIFICAÇÃO PRÉVIA - Ignora produtos sem tabela nutricional
+            # PRE-CHECK — skip products without nutrition tables
             if not self.verificar_tabela_nutricional(html_source):
                 nome_produto = self.extrair_nome_da_url(url)
-                logger.warning(f"Produto sem tabela nutricional detectado - IGNORADO: {nome_produto}")
+                logger.warning(f"Product missing nutrition table — SKIPPED: {nome_produto}")
                 self.produtos_ignorados.append({
                     'url': url,
                     'nome': nome_produto,
-                    'motivo': 'Sem palavras-chave nutricionais no HTML',
-                    'categoria': categoria if categoria else 'Não especificada'
+                    'motivo': 'No nutrition keywords detected in HTML',
+                    'categoria': categoria if categoria else 'Not specified'
                 })
                 return None
 
-            # Extrai código de barras do HTML
+            # Extract barcode from HTML
             codigo_barras = self.extrair_codigo_barras(html_source)
             
             if codigo_barras:
-                logger.info(f"Código de barras encontrado: {codigo_barras}")
+                logger.info(f"Barcode found: {codigo_barras}")
             else:
-                logger.warning(f"Código de barras não encontrado para: {url}")
+                logger.warning(f"Barcode not found for: {url}")
 
-            # Extrai a marca do produto
+            # Extract brand information
             marca = self.extrair_marca()
             
             if marca:
-                logger.info(f"Marca encontrada: {marca}")
+                logger.info(f"Brand captured: {marca}")
             else:
-                logger.warning(f"Marca não encontrada para: {url}")
+                logger.warning(f"Brand not found for: {url}")
 
             # Executa o JavaScript para extrair os dados
             resultado = self.driver.execute_script("""
@@ -347,7 +346,7 @@ class Scraper:
                 }
 
                 // Extrai o nome do produto
-                const nome = document.querySelector('h1')?.textContent?.trim() || "Sem informação";
+                const nome = document.querySelector('h1')?.textContent?.trim() || "No information";
 
                 // Extrai a porção
                 let porcao = "0";
@@ -423,13 +422,13 @@ class Scraper:
                     });
                 });
 
-                console.log("Dados extraídos:", dados);
+                console.log("Extracted data:", dados);
                 return dados;
             """)
 
             if resultado:
-                logger.info(f"Dados extraídos com sucesso para: {resultado['nome']}")
-                logger.info("Dados nutricionais:")
+                logger.info(f"Successfully extracted data for: {resultado['nome']}")
+                logger.info("Nutrition facts:")
                 for chave, valor in resultado.items():
                     if chave not in ['nome', 'url']:
                         logger.info(f"{chave}: {valor}")
@@ -447,30 +446,30 @@ class Scraper:
                 )
                 
                 if not tem_dados_nutricionais:
-                    logger.warning(f"Produto sem dados nutricionais válidos (valores zerados) - IGNORADO: {resultado['nome']}")
+                    logger.warning(f"Product has no valid nutrition values (all zeros) — SKIPPED: {resultado['nome']}")
                     self.produtos_ignorados.append({
                         'url': url,
                         'nome': resultado['nome'],
-                        'motivo': 'Valores nutricionais todos zerados',
-                        'categoria': categoria if categoria else 'Não especificada'
+                        'motivo': 'All nutrition values returned zero',
+                        'categoria': categoria if categoria else 'Not specified'
                     })
                     return None
                 
                 # Adiciona data de coleta, categoria, código e marca ao resultado
                 data_coleta = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 resultado['data_coleta'] = data_coleta
-                resultado['categoria'] = categoria if categoria else 'Não especificada'
+                resultado['categoria'] = categoria if categoria else 'Not specified'
                 resultado['codigo'] = codigo_barras if codigo_barras else ''
                 resultado['marca'] = marca if marca else ''
                 
                 # Retorna apenas os dados (salvamento será feito pelo chamador)
                 return resultado
             else:
-                logger.error(f"Não foi possível extrair dados da URL {url}")
+                logger.error(f"Unable to extract data from URL {url}")
                 return None
 
         except Exception as e:
-            logger.error(f"Erro ao processar URL {url}: {str(e)}")
+            logger.error(f"Error while processing URL {url}: {str(e)}")
             return None
 
     def processar_arquivo_urls(self, arquivo_urls):
@@ -484,7 +483,7 @@ class Scraper:
             # Lê o arquivo de URLs
             df_urls = pd.read_csv(arquivo_urls)
             total_produtos = len(df_urls)
-            logging.info(f"Iniciando coleta de dados para {total_produtos} produtos")
+            logging.info(f"Starting nutrition extraction for {total_produtos} product(s)")
             
             # Lista para armazenar os dados coletados
             dados_coletados = []
@@ -499,7 +498,7 @@ class Scraper:
                     nome = row['nome']
                     
                     # Log detalhado do progresso
-                    logging.info(f"Coletando dados do produto: {nome} ({idx + 1} de {total_produtos})")
+                    logging.info(f"Harvesting product: {nome} ({idx + 1} of {total_produtos})")
                     
                     # Acessa a URL do produto
                     driver.get(url)
@@ -512,7 +511,7 @@ class Scraper:
                         dados_coletados.append(dados)
                         
                 except Exception as e:
-                    logging.error(f"Erro ao processar produto {nome}: {str(e)}")
+                    logging.error(f"Failed to process product {nome}: {str(e)}")
                     continue
             
             # Fecha o navegador
@@ -554,27 +553,26 @@ class Scraper:
                 
                 # Salva o arquivo completo (sobrescrevendo para evitar problemas de append)
                 df_final.to_csv(arquivo_csv, index=False)
-                
-                logging.info(f"Dados coletados com sucesso para {len(dados_coletados)} produtos")
+                logging.info(f"Collected nutrition data for {len(dados_coletados)} product(s)")
             else:
-                logging.warning("Nenhum dado foi coletado")
+                logging.warning("No nutrition data was collected")
                 
         except Exception as e:
-            logging.error(f"Erro ao processar arquivo de URLs: {str(e)}")
+            logging.error(f"Error while processing URL file: {str(e)}")
             raise e
 
 if __name__ == "__main__":
-    logger.info("Este arquivo não deve ser executado diretamente. Use o main.py")
+    logger.info("This module is not intended to be executed directly. Use main.py.")
 
 def processar_urls(urls, limite_teste=None):
-    """Processa uma lista de URLs para extrair dados nutricionais."""
-    logger.info(f"Iniciando processamento de URLs...")
+    """Process a list of URLs to extract nutritional data."""
+    logger.info("Starting URL processing run...")
     
     dados_nutricionais = []
     driver = configurar_driver()
     
     try:
-        # Se limite_teste for especificado, limita o número de URLs
+        # Apply the test limit when provided
         urls_processar = urls[:limite_teste] if limite_teste else urls
         
         for url_info in urls_processar:
@@ -586,28 +584,28 @@ def processar_urls(urls, limite_teste=None):
                     dados['categoria'] = url_info.get('categoria', '')
                 dados_nutricionais.append(dados)
         
-        # Cria DataFrame e salva em CSV
+        # Build DataFrame and persist to CSV
         if dados_nutricionais:
             df = pd.DataFrame(dados_nutricionais)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             nome_arquivo = f"dados_nutricionais_{timestamp}.csv"
             df.to_csv(nome_arquivo, index=False)
-            logger.info(f"Dados salvos em {nome_arquivo}")
+            logger.info(f"Nutrition data stored in {nome_arquivo}")
             
     except Exception as e:
-        logger.error(f"Erro durante o processamento: {str(e)}")
+        logger.error(f"Unexpected error during processing: {str(e)}")
     finally:
         driver.quit()
     
     return dados_nutricionais
 
 def teste_url():
-    """Função para testar o scraper com uma única URL."""
+    """Helper function to test the scraper against a single URL."""
     url_teste = "https://www.paodeacucar.com/produto/298933/leite-condensado-moca-lata-395g"
     driver = configurar_driver()
     try:
         dados = extrair_dados_nutricionais(url_teste, driver)
-        print("\nDados extraídos:")
+        print("\nExtracted data:")
         for chave, valor in dados.items():
             print(f"{chave}: {valor}")
     finally:
@@ -623,12 +621,12 @@ urls_teste = [
 ]
 
 def teste_url_especifica():
-    """Função para testar a extração de dados de uma URL específica."""
+    """Helper to manually inspect the extraction for a specific URL."""
     url = "https://www.paodeacucar.com/produto/1376996/queijo-minas-padrao-vegetal-vida-veg-200g"
     driver = configurar_driver()
     
     try:
-        print("\nTestando URL específica...")
+        print("\nTesting specific URL...")
         driver.get(url)
         time.sleep(5)  # Aguardar carregamento da página
         
@@ -713,7 +711,7 @@ def teste_url_especifica():
         """
         
         porcao = driver.execute_script(script)
-        print(f"\nPorção encontrada: {porcao}")
+        print(f"\nServing size found: {porcao}")
         
         # Agora vamos tentar expandir a tabela nutricional
         try:
@@ -732,34 +730,34 @@ def teste_url_especifica():
             
             # Tenta encontrar a porção novamente após expandir
             porcao_apos_expandir = driver.execute_script(script)
-            print(f"Porção após expandir tabela: {porcao_apos_expandir}")
+            print(f"Serving size after expanding table: {porcao_apos_expandir}")
             
         except Exception as e:
-            print(f"Erro ao expandir tabela: {e}")
+            print(f"Error while expanding table: {e}")
         
     except Exception as e:
-        print(f"Erro ao testar URL: {e}")
+        print(f"Error while testing URL: {e}")
     finally:
         driver.quit()
 
 def testar_url_margarina():
-    """Função para testar a extração de dados da margarina Qualy."""
+    """Helper to test data extraction for the Qualy margarine sample."""
     url = "https://www.paodeacucar.com/produto/71812/margarina-cremosa-com-sal-qualy-pote-500g"
     driver = configurar_driver()
     
     try:
         dados = extrair_dados_nutricionais(url, driver)
         if dados:
-            print("\nDados extraídos da margarina Qualy:")
+            print("\nExtracted data for Qualy margarine:")
             for chave, valor in dados.items():
                 print(f"{chave}: {valor}")
         else:
-            print("Não foi possível extrair os dados")
+            print("Could not extract the data")
     finally:
         driver.quit()
 
 def testar_salvamento_csv():
-    """Função para testar o salvamento dos dados em CSV."""
+    """Helper to test saving extracted data into a CSV file."""
     url = "https://www.paodeacucar.com/produto/71812/margarina-cremosa-com-sal-qualy-pote-500g"
     
     # Cria uma lista com a URL de teste
@@ -777,14 +775,14 @@ def testar_salvamento_csv():
         # Salva em CSV
         nome_arquivo = 'teste_dados_nutricionais_margarina.csv'
         df.to_csv(nome_arquivo, index=False)
-        print(f"\nDados salvos em {nome_arquivo}")
-        print("\nConteúdo do arquivo CSV:")
+        print(f"\nData saved to {nome_arquivo}")
+        print("\nCSV contents:")
         print(df.to_string())
     else:
-        print("Não foi possível criar o DataFrame")
+        print("Failed to create the DataFrame")
 
 def testar_produtos_especificos():
-    """Função para testar a extração de dados de produtos específicos."""
+    """Helper to test extraction for a short list of specific products."""
     urls = [
         "https://www.paodeacucar.com/produto/66261/queijo-minas-frescal-fazenda-bela-vista-500g",
         "https://www.paodeacucar.com/produto/66262/queijo-mussarela-tirolez-fatiado-bandeja-150g"
@@ -795,39 +793,39 @@ def testar_produtos_especificos():
         for url in urls:
             dados = extrair_dados_nutricionais(url, driver)
             if dados:
-                print(f"\nDados extraídos do produto {dados.get('nome', 'Desconhecido')}:")
-                print(f"Porção: {dados.get('porcao', 'Não encontrada')}")
-                print("Dados nutricionais:")
+                print(f"\nExtracted data for {dados.get('nome', 'Unknown product')}:")
+                print(f"Serving size: {dados.get('porcao', 'Not found')}")
+                print("Nutrition facts:")
                 for chave, valor in dados.items():
                     if chave not in ['url', 'nome', 'porcao']:
                         print(f"{chave}: {valor}")
             else:
-                print(f"\nNão foi possível extrair os dados da URL: {url}")
+                print(f"\nCould not extract data from URL: {url}")
     finally:
         driver.quit()
 
 def testar_url_queijo():
-    """Função para testar a extração de dados do queijo mussarela."""
+    """Helper to test extraction flow for the mozzarella cheese example."""
     url = "https://www.paodeacucar.com/produto/339743/queijo-mussarela-fatiado-president-150g"
     driver = configurar_driver()
     try:
-        print("\nTestando URL do queijo mussarela Président...")
+        print("\nTesting Président mozzarella URL...")
         dados = extrair_dados_nutricionais(url, driver)
         if dados:
-            print("\nDados extraídos da tabela nutricional:")
+            print("\nExtracted nutrition table:")
             print("-" * 50)
             for chave, valor in dados.items():
                 print(f"{chave}: {valor}")
         else:
-            print("Não foi possível extrair os dados")
+            print("Could not extract the data")
     except Exception as e:
-        print(f"Erro ao processar URL: {str(e)}")
+        print(f"Error while processing URL: {str(e)}")
     finally:
         driver.quit()
 
 def testar_url_president():
-    """Testa a extração de dados nutricionais para o queijo mussarela Président."""
-    logger.info("Iniciando teste com queijo mussarela Président...")
+    """Test the nutritional extraction for Président mozzarella."""
+    logger.info("Starting test run with Président mozzarella...")
     url = "https://www.paodeacucar.com/produto/339743/queijo-mussarela-fatiado-president-150g"
     
     driver = configurar_driver()
@@ -839,9 +837,9 @@ def testar_url_president():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             nome_arquivo = f"dados_nutricionais_{timestamp}.csv"
             df.to_csv(nome_arquivo, index=False)
-            logger.info(f"Dados salvos em {nome_arquivo}")
+            logger.info(f"Data saved to {nome_arquivo}")
         else:
-            logger.error("Não foi possível extrair os dados")
+            logger.error("Unable to extract the data")
     finally:
         driver.quit()
 
@@ -893,8 +891,8 @@ if __name__ == "__main__":
             try:
                 dados = extrair_dados_nutricionais(url, driver)
                 if dados:
-                    logger.info(f"Dados extraídos com sucesso para: {dados['nome']}")
-                    logger.info("Dados nutricionais:")
+                    logger.info(f"Successfully extracted data for: {dados['nome']}")
+                    logger.info("Nutrition facts:")
                     
                     # Converte valores para as unidades padrão
                     for campo, unidade in unidades_padrao.items():
@@ -935,19 +933,19 @@ if __name__ == "__main__":
                     # Adiciona os dados ao DataFrame
                     df_produtos = pd.concat([df_produtos, pd.DataFrame([dados_com_unidades])], ignore_index=True)
                     
-                    print("\nDados extraídos da tabela nutricional:")
+                    print("\nExtracted nutrition table:")
                     print("-" * 50)
                     for chave, valor in dados_com_unidades.items():
                         print(f"{chave}: {valor}")
             except Exception as e:
-                logger.error(f"Erro ao processar URL {url}: {str(e)}")
+                logger.error(f"Error while processing URL {url}: {str(e)}")
         
         # Salva o DataFrame completo em CSV
         nome_arquivo = f"dados_nutricionais_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
         df_produtos.to_csv(nome_arquivo, index=False)
-        logger.info(f"Dados salvos em {nome_arquivo}")
+        logger.info(f"Data saved to {nome_arquivo}")
 
     finally:
         driver.quit()
 
-    logger.info("Este arquivo não deve ser executado diretamente. Use o main.py") 
+    logger.info("This module is not intended to be executed directly. Use main.py.")

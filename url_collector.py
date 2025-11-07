@@ -16,18 +16,18 @@ import json
 import os
 
 # ============================================================================
-# FUNÇÕES DE CHECKPOINT E RECUPERAÇÃO
+# CHECKPOINT & RECOVERY UTILITIES
 # ============================================================================
 
 def salvar_checkpoint(arquivo, urls, num_scrolls, posicao_scroll=0):
     """
-    Salva checkpoint com URLs e metadados para recuperação em caso de crash.
-    
+    Persist a checkpoint with URLs and metadata for crash recovery.
+
     Args:
-        arquivo (str): Nome do arquivo de checkpoint
-        urls (list): Lista de URLs coletadas até o momento
-        num_scrolls (int): Número de rolagens executadas
-        posicao_scroll (int): Posição atual do scroll na página
+        arquivo (str): Checkpoint filename
+        urls (list): URLs collected so far
+        num_scrolls (int): Number of scroll operations executed
+        posicao_scroll (int): Current scroll position on the page
     """
     try:
         checkpoint = {
@@ -39,174 +39,186 @@ def salvar_checkpoint(arquivo, urls, num_scrolls, posicao_scroll=0):
         }
         with open(arquivo, 'w', encoding='utf-8') as f:
             json.dump(checkpoint, f, ensure_ascii=False, indent=2)
-        logger.info(f"✅ Checkpoint salvo: {len(urls)} produtos, {num_scrolls} rolagens")
+        logger.info(f"✅ Checkpoint saved: {len(urls)} product(s), {num_scrolls} scroll(s)")
     except Exception as e:
-        logger.error(f"❌ Erro ao salvar checkpoint: {e}")
+        logger.error(f"❌ Failed to save checkpoint: {e}")
 
 def carregar_checkpoint(arquivo):
     """
-    Carrega checkpoint se existir.
-    
+    Load a checkpoint if one is available.
+
     Args:
-        arquivo (str): Nome do arquivo de checkpoint
-        
+        arquivo (str): Checkpoint filename
+
     Returns:
-        dict ou None: Dados do checkpoint ou None se não existir
+        dict | None: Checkpoint payload or None when not found
     """
     try:
         if os.path.exists(arquivo):
             with open(arquivo, 'r', encoding='utf-8') as f:
                 checkpoint = json.load(f)
-            logger.info(f"📦 Checkpoint carregado: {checkpoint['total_produtos']} produtos, {checkpoint['num_scrolls']} rolagens")
+            logger.info(
+                f"📦 Checkpoint loaded: {checkpoint['total_produtos']} product(s), "
+                f"{checkpoint['num_scrolls']} scroll(s)"
+            )
             logger.info(f"   Timestamp: {checkpoint['timestamp']}")
             return checkpoint
     except Exception as e:
-        logger.error(f"❌ Erro ao carregar checkpoint: {e}")
+        logger.error(f"❌ Failed to load checkpoint: {e}")
     return None
 
 def limpar_checkpoint(arquivo):
     """
-    Remove checkpoint após conclusão bem-sucedida.
-    
+    Remove a checkpoint after a successful run.
+
     Args:
-        arquivo (str): Nome do arquivo de checkpoint
+        arquivo (str): Checkpoint filename
     """
     try:
         if os.path.exists(arquivo):
             os.remove(arquivo)
-            logger.info(f"🗑️  Checkpoint removido: {arquivo}")
+            logger.info(f"🗑️  Checkpoint removed: {arquivo}")
     except Exception as e:
-        logger.error(f"❌ Erro ao remover checkpoint: {e}")
+        logger.error(f"❌ Failed to remove checkpoint: {e}")
 
 # ============================================================================
-# FUNÇÕES DE COLETA DE URLs
+# URL HARVESTING UTILITIES
 # ============================================================================
 
 def scroll_ate_o_fim(driver, max_scrolls=None):
     """
-    Rola a página até o fim para carregar todos os produtos.
-    Retorna False se não houver mais conteúdo para carregar.
+    Scroll the page until the end to load every product card.
+    Returns False when no additional content can be loaded.
     """
     num_scrolls = 0
     produtos_antes = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
     contagem_mesma_quantidade = 0
-    max_tentativas_mesma_quantidade = 3  # Número máximo de vezes que aceitamos ver a mesma quantidade
+    max_tentativas_mesma_quantidade = 3  # Max times we tolerate seeing the same count
     ultima_quantidade = produtos_antes
     
-    logger.info(f"Iniciando coleta com {produtos_antes} produtos")
+    logger.info(f"Starting harvest with {produtos_antes} product(s)")
     
     while True:
-        # Se atingiu o número máximo de scrolls, para
+        # Stop if we hit the max allowed scroll count
         if max_scrolls and num_scrolls >= max_scrolls:
-            logger.info("Número máximo de scrolls atingido")
+            logger.info("Maximum scroll threshold reached")
             return True
             
-        # Rola 1/3 da altura da página
+        # Scroll by one-third of the total height
         altura_viewport = driver.execute_script("return window.innerHeight")
         altura_total = driver.execute_script("return document.body.scrollHeight")
         posicao_atual = driver.execute_script("return window.pageYOffset")
         
-        # Calcula a próxima posição de rolagem (1/3 da altura total)
+        # Calculate next scroll position (1/3 of total height)
         proxima_posicao = min(posicao_atual + (altura_total / 3), altura_total - altura_viewport)
         
-        # Executa a rolagem
+        # Execute the scroll
         driver.execute_script(f"window.scrollTo(0, {proxima_posicao});")
-        time.sleep(5)  # Aumenta o tempo de espera para 5 segundos
+        time.sleep(5)  # Allow lazy-loaded cards to render
         
-        # Conta produtos após a rolagem
+        # Count product cards after scrolling
         produtos_depois = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
         
-        # Se a quantidade de produtos não mudou
+        # If the product count has not changed
         if produtos_depois == ultima_quantidade:
             contagem_mesma_quantidade += 1
-            logger.info(f"Quantidade de produtos não mudou: {produtos_depois} (tentativa {contagem_mesma_quantidade} de {max_tentativas_mesma_quantidade})")
+            logger.info(
+                f"Product count unchanged: {produtos_depois} "
+                f"(attempt {contagem_mesma_quantidade} of {max_tentativas_mesma_quantidade})"
+            )
             
-            # Se atingiu o máximo de tentativas sem mudança, para
+            # Stop if we already tried enough times without any change
             if contagem_mesma_quantidade >= max_tentativas_mesma_quantidade:
-                logger.info(f"Fim da página detectado - quantidade de produtos não mudou após {max_tentativas_mesma_quantidade} tentativas")
+                logger.info(
+                    "End of page detected — product count remained stable after "
+                    f"{max_tentativas_mesma_quantidade} attempts"
+                )
                 return False
         else:
-            # Se encontrou novos produtos, reseta o contador
-            logger.info(f"Novos produtos encontrados: {produtos_depois - ultima_quantidade} (total: {produtos_depois})")
+            # Reset counter when new products appear
+            logger.info(
+                f"New products loaded: {produtos_depois - ultima_quantidade} "
+                f"(total: {produtos_depois})"
+            )
             contagem_mesma_quantidade = 0
             ultima_quantidade = produtos_depois
         
         num_scrolls += 1
-        logger.info(f"Rolagem {num_scrolls} - Total de produtos: {produtos_depois}")
+        logger.info(f"Scroll {num_scrolls} - Total products: {produtos_depois}")
         
-        # Tenta clicar no botão "Carregar mais" se existir
+        # Attempt to click “load more” button when present
         try:
             botao_carregar = driver.find_element(By.CSS_SELECTOR, "button[class*='load-more']")
             if botao_carregar.is_displayed():
                 botao_carregar.click()
-                time.sleep(5)  # Aumenta o tempo de espera após clicar no botão
-                logger.info("Clicou no botão 'Carregar mais'")
+                time.sleep(5)  # Give time for new cards to load
+                logger.info("Clicked the 'load more' button")
         except:
             pass
 
 def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
     """
-    Extrai todas as URLs e nomes dos produtos da página atual.
-    
+    Extract every product URL and name currently visible on the page.
+
     Args:
-        driver: WebDriver do Selenium
-        max_urls: Número máximo de URLs a coletar
-        urls_ja_coletadas: Set de URLs já coletadas para evitar duplicatas
-    
+        driver: Selenium WebDriver instance
+        max_urls: Optional cap for the number of URLs to collect
+        urls_ja_coletadas: Set of URLs already collected to avoid duplicates
+
     Returns:
-        list: Lista de dicionários com 'url' e 'nome' dos produtos
-        bool: True se encontrou produtos novos, False se não
+        list: List of dicts containing product `url` and `nome`
+        bool: True when new products were found, otherwise False
     """
     produtos_info = []
     urls_ja_coletadas = urls_ja_coletadas or set()
     produtos_novos = False
     
-    # Aguarda um pouco mais para garantir que a página carregou completamente
+    # Give the page a moment to finish rendering
     time.sleep(5)
     
     try:
-        # Primeiro tenta encontrar os produtos usando diferentes seletores comuns
+        # Try multiple selectors because the layout may vary
         selectors = [
-            "div[data-testid='product-card']",  # Novo padrão comum
-            "div.product-card",                  # Classe direta
-            "div[class*='product-card']",        # Classe parcial
-            "div[class*='ProductCard']",         # Variação CamelCase
-            "div.vtex-product-summary-2-x-container",  # Padrão VTEX
-            "div.shelf-product",                 # Padrão antigo
-            "article[data-testid='product-card']",  # Variação com article
-            "a[href*='/produto/']"  # Links diretos de produtos
+            "div[data-testid='product-card']",             # Current layout pattern
+            "div.product-card",                            # Direct class
+            "div[class*='product-card']",                  # Partial match
+            "div[class*='ProductCard']",                   # CamelCase variant
+            "div.vtex-product-summary-2-x-container",      # VTEX pattern
+            "div.shelf-product",                           # Legacy markup
+            "article[data-testid='product-card']",         # Article variant
+            "a[href*='/produto/']"                         # Direct product anchor
         ]
         
         cards = None
         for selector in selectors:
-            logger.debug(f"Tentando seletor: {selector}")
+            logger.debug(f"Trying selector: {selector}")
             cards = driver.find_elements(By.CSS_SELECTOR, selector)
             if cards:
-                logger.info(f"Encontrados {len(cards)} produtos com seletor: {selector}")
+                logger.info(f"Found {len(cards)} product(s) with selector: {selector}")
                 break
         
         if not cards:
-            logger.info("Nenhum produto encontrado com os seletores disponíveis")
+            logger.info("No products found using the available selectors")
             return [], False
             
         for card in cards:
             try:
-                # Tenta diferentes maneiras de obter a URL e o nome
+                # Attempt different strategies to fetch URL and title
                 url = None
                 nome = None
                 
-                # Tenta encontrar a URL
+                # Retrieve the product URL
                 if '/produto/' in card.get_attribute('href'):
                     url = card.get_attribute('href')
                 else:
                     link = card.find_element(By.CSS_SELECTOR, "a[href*='/produto/']")
                     url = link.get_attribute('href')
                 
-                # Se a URL já foi coletada, pula
+                # Skip duplicates
                 if url in urls_ja_coletadas:
                     continue
                 
-                # Tenta diferentes seletores para o nome
+                # Try multiple selectors for the product name
                 nome_selectors = [
                     "h2[class*='product-card__title']",
                     "h2[class*='ProductCard__title']",
@@ -226,7 +238,7 @@ def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
                     except:
                         continue
                 
-                # Se não encontrou o nome pelos seletores, tenta extrair da URL
+                # Fallback: derive name from the URL slug
                 if not nome and url:
                     nome = url.split('/')[-1].replace('-', ' ').strip()
                 
@@ -237,77 +249,83 @@ def extrair_urls_produtos(driver, max_urls=None, urls_ja_coletadas=None):
                     })
                     urls_ja_coletadas.add(url)
                     produtos_novos = True
-                    logger.debug(f"Produto encontrado: {nome} - {url}")
+                    logger.debug(f"Product captured: {nome} - {url}")
                 
-                # Se atingiu o número máximo de URLs e está no modo teste, para
+                # Honor the max limit when running in test mode
                 if max_urls and len(produtos_info) >= max_urls:
-                    logger.info(f"Número máximo de URLs atingido ({max_urls})")
+                    logger.info(f"Reached maximum URL cap ({max_urls})")
                     break
                     
             except Exception as e:
-                logger.error(f"Erro ao extrair informações do produto: {str(e)}")
+                logger.error(f"Failed to extract product information: {str(e)}")
                 continue
     
-        logger.info(f"Total de produtos encontrados nesta página: {len(produtos_info)}")
+        logger.info(f"Products captured on this page: {len(produtos_info)}")
         
     except Exception as e:
-        logger.error(f"Erro ao processar página: {str(e)}")
+        logger.error(f"Failed to parse page: {str(e)}")
     
     return produtos_info, produtos_novos
 
 def coletar_urls_categoria(url_categoria, categoria_nome, max_paginas=None, max_urls_por_pagina=None, max_scrolls=None):
-    """Coleta todas as URLs dos produtos de uma categoria."""
+    """Collect every product URL for a given category page."""
     driver = configurar_driver()
     todas_urls = []
     urls_ja_coletadas = set()
     pagina = 1
     paginas_sem_produtos_novos = 0
-    max_paginas_sem_produtos = 3  # Se não encontrar produtos novos em 3 páginas seguidas, considera fim da categoria
+    max_paginas_sem_produtos = 3  # When 3 consecutive pages add nothing new, stop
     
     try:
-        # Remove o parâmetro de página se existir na URL base
+        # Strip page parameter if present
         url_base = re.sub(r'[?&]p=\d+', '', url_categoria)
-        # Garante que temos um '?' ou '&' apropriado para adicionar parâmetros
+        # Ensure the URL is ready for pagination
         if '?' not in url_base:
             url_base += '?'
         elif not url_base.endswith('&') and not url_base.endswith('?'):
             url_base += '&'
         
         while True:
-            # Se atingiu o número máximo de páginas, para
+            # Stop when we reach the configured page limit
             if max_paginas and pagina > max_paginas:
-                logger.info(f"Número máximo de páginas atingido ({max_paginas})")
+                logger.info(f"Maximum page limit reached ({max_paginas})")
                 break
                 
             url_paginada = f"{url_base}p={pagina}"
-            logger.info(f"Processando página {pagina}: {url_paginada}")
+            logger.info(f"Processing page {pagina}: {url_paginada}")
             
             driver.get(url_paginada)
-            time.sleep(3)  # Aguarda carregamento inicial
+            time.sleep(3)  # Allow initial content to render
             
-            # Rola até o fim para carregar todos os produtos
+            # Scroll to the end so every product appears
             tem_mais_conteudo = scroll_ate_o_fim(driver, max_scrolls)
             
-            # Extrai URLs e nomes dos produtos
+            # Extract product URLs and names
             produtos_pagina, encontrou_novos = extrair_urls_produtos(
                 driver, 
                 max_urls_por_pagina,
                 urls_ja_coletadas
             )
             
-            # Se não encontrou produtos novos, incrementa o contador
+            # Track consecutive pages without new results
             if not encontrou_novos:
                 paginas_sem_produtos_novos += 1
-                logger.info(f"Página {pagina} não trouxe produtos novos. ({paginas_sem_produtos_novos}/{max_paginas_sem_produtos})")
+                logger.info(
+                    f"Page {pagina} returned no new products "
+                    f"({paginas_sem_produtos_novos}/{max_paginas_sem_produtos})"
+                )
                 
-                # Se atingiu o limite de páginas sem produtos novos, considera fim da categoria
+                # Stop once the threshold is reached
                 if paginas_sem_produtos_novos >= max_paginas_sem_produtos:
-                    logger.info(f"Fim da categoria detectado - {max_paginas_sem_produtos} páginas sem produtos novos")
+                    logger.info(
+                        "Category appears exhausted — "
+                        f"{max_paginas_sem_produtos} consecutive pages without new products"
+                    )
                     break
             else:
-                paginas_sem_produtos_novos = 0  # Reseta o contador se encontrou produtos novos
+                paginas_sem_produtos_novos = 0  # Reset counter when new products are found
             
-            # Adiciona informações extras para cada produto
+            # Enrich every product with metadata
             for produto in produtos_pagina:
                 produto.update({
                     'categoria': categoria_nome,
@@ -316,17 +334,17 @@ def coletar_urls_categoria(url_categoria, categoria_nome, max_paginas=None, max_
                 })
             
             todas_urls.extend(produtos_pagina)
-            logger.info(f"Total de produtos encontrados até agora: {len(todas_urls)}")
+            logger.info(f"Running total of products collected: {len(todas_urls)}")
             
-            # Se não tem mais conteúdo para carregar e não encontrou produtos novos, chegamos ao fim
+            # Break if the page has no more content and no new products were found
             if not tem_mais_conteudo and not encontrou_novos:
-                logger.info("Fim da categoria detectado - não há mais conteúdo para carregar")
+                logger.info("Category seems finished — no additional content available")
                 break
             
             pagina += 1
             
     except Exception as e:
-        logger.error(f"Erro ao processar categoria: {e}")
+        logger.error(f"Failed to process category: {e}")
     finally:
         driver.quit()
     
@@ -334,125 +352,124 @@ def coletar_urls_categoria(url_categoria, categoria_nome, max_paginas=None, max_
 
 class URLCollector:
     def __init__(self):
-        """Inicializa o coletor de URLs."""
+        """Initialize the URL collector helper."""
         self.driver = None
         
     def inicializar_driver(self):
-        """Inicializa o driver do navegador."""
+        """Spin up a new configured browser driver."""
         try:
             self.driver = configurar_driver()
             if not self.driver:
-                raise Exception("Falha ao configurar o driver")
+                raise Exception("Failed to configure the driver")
             return self.driver
         except Exception as e:
-            logger.error(f"Erro ao inicializar driver: {str(e)}")
+            logger.error(f"Error bootstrapping driver: {str(e)}")
             return None
         
     def scroll_pagina(self, driver):
-        """Rola a página para baixo para carregar mais produtos."""
+        """Scroll the page to trigger lazy loading of additional products."""
         try:
-            # Rola até o fim da página
+            # Scroll to the page bottom
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(2)  # Espera o carregamento
+            time.sleep(2)  # Wait for new content
             
-            # Verifica se há um botão "Carregar mais" e clica nele
+            # Click the “load more” button when present
             try:
                 botao_carregar = driver.find_element(By.CSS_SELECTOR, "button[class*='load-more']")
                 if botao_carregar.is_displayed():
                     botao_carregar.click()
-                    time.sleep(2)  # Espera o carregamento após clicar
+                    time.sleep(2)
             except:
                 pass
                 
         except Exception as e:
-            logger.error(f"Erro ao rolar página: {str(e)}")
+            logger.error(f"Error while scrolling: {str(e)}")
             
     def coletar_urls(self, url_categoria, modo_teste=False, categoria_nome=None):
         """
-        Coleta URLs dos produtos de uma categoria com checkpoint e recuperação de crashes.
-        
+        Collect product URLs from a category with checkpointing and crash recovery.
+
         Args:
-            url_categoria: URL da categoria para coletar
-            modo_teste: Se True, limita a coleta a poucos produtos para teste
-            categoria_nome: Nome da categoria para adicionar aos produtos
-            
+            url_categoria: Category URL to harvest
+            modo_teste: When True, limit results to a small sample for validation
+            categoria_nome: Human-readable category name to stamp onto products
+
         Returns:
-            list: Lista de URLs coletadas
+            list: Aggregated list of harvested product dictionaries
         """
         driver = None
         
-        # Configurações de checkpoint e reinício
-        BATCH_SIZE = 1000  # Salvar checkpoint a cada 1000 produtos
-        RESTART_INTERVAL = 100  # Reiniciar navegador a cada 100 rolagens
-        MAX_RETRY_CRASHES = 3  # Número máximo de tentativas após crashes
+        # Checkpoint and restart configuration
+        BATCH_SIZE = 1000  # Persist every 1000 products
+        RESTART_INTERVAL = 100  # Restart browser every 100 scrolls
+        MAX_RETRY_CRASHES = 3  # Maximum number of retries after crashes
         
         try:
-            # Usa o nome da categoria fornecido ou tenta extrair da URL
+            # Use the supplied category name or infer one from the URL
             if not categoria_nome:
-                categoria_nome = 'Categoria não informada'
+                categoria_nome = 'Unknown category'
                 try:
-                    # Extrai o nome da categoria da URL
+                    # Extract category name from URL fragments
                     if '/c/' in url_categoria:
                         categoria_nome = url_categoria.split('/c/')[-1].split('?')[0].split('#')[0]
                         categoria_nome = categoria_nome.replace('-', ' ').replace('_', ' ').title()
                     elif '/categoria/' in url_categoria:
                         categoria_nome = url_categoria.split('/categoria/')[-1].split('?')[0].split('#')[0]
-                        # Remove o prefixo "alimentos/" se presente
+                        # Remove the "alimentos/" prefix when present
                         if categoria_nome.lower().startswith('alimentos/'):
-                            categoria_nome = categoria_nome[10:]  # Remove "alimentos/" (10 caracteres)
+                            categoria_nome = categoria_nome[10:]
                         categoria_nome = categoria_nome.replace('-', ' ').replace('_', ' ').title()
                     else:
-                        # Se não conseguir extrair, usa um padrão genérico
-                        categoria_nome = 'Categoria não informada'
+                        categoria_nome = 'Unknown category'
                 except:
-                    categoria_nome = 'Categoria não informada'
+                    categoria_nome = 'Unknown category'
             
-            # Define o nome do arquivo de checkpoint
+            # Build checkpoint filename
             categoria_slug = categoria_nome.lower().replace(' ', '_').replace('(', '').replace(')', '')
             checkpoint_file = f"urls_checkpoint_{categoria_slug}.json"
             
-            # Verifica se existe checkpoint anterior
+            # Check for previously stored checkpoints
             checkpoint = carregar_checkpoint(checkpoint_file)
             if checkpoint:
-                logger.warning("⚠️  Checkpoint anterior encontrado! Continuando de onde parou...")
+                logger.warning("⚠️  Existing checkpoint found! Resuming from last saved state...")
                 todas_urls = checkpoint['urls']
                 urls_ja_coletadas = set(p['url'] for p in todas_urls)
                 num_scrolls_inicial = checkpoint['num_scrolls']
                 posicao_scroll_inicial = checkpoint['posicao_scroll']
-                logger.info(f"📊 Retomando com {len(todas_urls)} produtos já coletados")
+                logger.info(f"📊 Resuming with {len(todas_urls)} product(s) already collected")
             else:
                 todas_urls = []
                 urls_ja_coletadas = set()
                 num_scrolls_inicial = 0
                 posicao_scroll_inicial = 0
             
-            # Define limites baseado no modo
+            # Adjust limits for test mode
             max_scrolls = 2 if modo_teste else None
-            max_urls = 5 if modo_teste else None  # None significa sem limite
+            max_urls = 5 if modo_teste else None  # None => unlimited
             
-            # Contador de crashes
+            # Crash counter
             crash_count = 0
             
-            # Loop principal com recuperação de crashes
+            # Main loop with crash recovery
             while crash_count < MAX_RETRY_CRASHES:
                 try:
-                    # Inicializa ou reinicializa o driver
+                    # Initialize or reinitialize the browser instance
                     if driver is None:
                         driver = self.inicializar_driver()
                         if not driver:
-                            raise Exception("Falha ao inicializar o driver")
+                            raise Exception("Failed to initialize driver")
                         
-                        logger.info(f"🌐 Acessando categoria: {url_categoria}")
+                        logger.info(f"🌐 Opening category: {url_categoria}")
                         driver.get(url_categoria)
-                        time.sleep(5)  # Espera o carregamento inicial
+                        time.sleep(5)
                         
-                        # Se está retomando, faz scroll rápido até a posição anterior
+                        # Jump to previously saved scroll position when resuming
                         if posicao_scroll_inicial > 0:
-                            logger.info(f"⏩ Pulando para posição de scroll: {posicao_scroll_inicial}")
+                            logger.info(f"⏩ Jumping to scroll position: {posicao_scroll_inicial}")
                             driver.execute_script(f"window.scrollTo(0, {posicao_scroll_inicial});")
                             time.sleep(3)
                     
-                    # Variáveis de controle do scroll
+                    # Scroll control variables
                     num_scrolls = num_scrolls_inicial
                     produtos_antes = len(driver.find_elements(By.CSS_SELECTOR, "div[data-testid='product-card'], a[href*='/produto/']"))
                     contagem_mesma_quantidade = 0
@@ -460,63 +477,63 @@ class URLCollector:
                     ultima_quantidade = len(todas_urls)
                     ultimo_checkpoint_size = len(todas_urls)
                     
-                    logger.info(f"🔄 Iniciando coleta (já temos {len(todas_urls)} produtos)")
+                    logger.info(f"🔄 Starting harvesting loop (current total: {len(todas_urls)})")
                     
-                    # Loop de scroll e coleta
+                    # Scroll + collect loop
                     while True:
-                        # Se atingiu o número máximo de scrolls no modo teste, para
+                        # Stop when the test-mode limit is hit
                         if max_scrolls and num_scrolls >= (max_scrolls + num_scrolls_inicial):
-                            logger.info("✅ Número máximo de scrolls atingido (modo teste)")
+                            logger.info("✅ Test mode scroll limit reached")
                             break
                         
-                        # Verifica se precisa reiniciar o navegador
+                        # Restart browser periodically to free memory
                         if not modo_teste and num_scrolls > 0 and (num_scrolls - num_scrolls_inicial) % RESTART_INTERVAL == 0 and (num_scrolls - num_scrolls_inicial) > 0:
-                            logger.info(f"🔄 Reiniciando navegador para liberar memória (rolagem {num_scrolls})")
+                            logger.info(f"🔄 Restarting browser to free memory (scroll {num_scrolls})")
                             
-                            # Salva a posição atual
+                            # Save current position
                             posicao_atual = driver.execute_script("return window.pageYOffset")
                             
-                            # Salva checkpoint antes de reiniciar
+                            # Persist checkpoint before restarting
                             salvar_checkpoint(checkpoint_file, todas_urls, num_scrolls, posicao_atual)
                             
-                            # Fecha o navegador atual
+                            # Close the current driver
                             driver.quit()
                             time.sleep(2)
                             
-                            # Reinicia o navegador
+                            # Boot a fresh driver
                             driver = self.inicializar_driver()
                             if not driver:
-                                raise Exception("Falha ao reinicializar o driver")
+                                raise Exception("Failed to reinitialize driver")
                             
                             driver.get(url_categoria)
                             time.sleep(5)
                             
-                            # Volta para a posição anterior
-                            logger.info(f"⏩ Retornando para posição {posicao_atual}")
+                            # Jump back to where we left off
+                            logger.info(f"⏩ Returning to scroll position {posicao_atual}")
                             driver.execute_script(f"window.scrollTo(0, {posicao_atual});")
                             time.sleep(3)
                         
-                        # Executa a rolagem
+                        # Perform scroll
                         altura_viewport = driver.execute_script("return window.innerHeight")
                         altura_total = driver.execute_script("return document.body.scrollHeight")
                         posicao_atual = driver.execute_script("return window.pageYOffset")
                         
-                        # Calcula a próxima posição de rolagem
+                        # Compute next scroll target
                         proxima_posicao = min(posicao_atual + (altura_total / 3), altura_total - altura_viewport)
                         
-                        # Executa a rolagem
+                        # Scroll
                         driver.execute_script(f"window.scrollTo(0, {proxima_posicao});")
                         time.sleep(5)
                         
-                        # Extrai URLs após a rolagem
+                        # Extract product URLs after scrolling
                         urls_pagina, encontrou_novos = extrair_urls_produtos(
                             driver,
                             max_urls=max_urls,
                             urls_ja_coletadas=urls_ja_coletadas
                         )
                         
-                        # Adiciona informações aos produtos novos
-                        # A função extrair_urls_produtos já filtra duplicatas, então todos em urls_pagina são novos
+                        # Add metadata to each newly found product
+                        # (extrair_urls_produtos already filters duplicates)
                         for produto in urls_pagina:
                             produto.update({
                                 'categoria': categoria_nome,
@@ -525,47 +542,50 @@ class URLCollector:
                             todas_urls.append(produto)
                             urls_ja_coletadas.add(produto['url'])
                         
-                        # Verifica se encontrou produtos novos
+                        # Check whether new products were added this round
                         if len(todas_urls) == ultima_quantidade:
                             contagem_mesma_quantidade += 1
-                            logger.info(f"⏸️  Quantidade não mudou: {len(todas_urls)} produtos (tentativa {contagem_mesma_quantidade}/{max_tentativas_mesma_quantidade})")
+                            logger.info(
+                                f"⏸️  Product count unchanged: {len(todas_urls)} "
+                                f"(attempt {contagem_mesma_quantidade}/{max_tentativas_mesma_quantidade})"
+                            )
                             
                             if contagem_mesma_quantidade >= max_tentativas_mesma_quantidade:
-                                logger.info(f"✅ Fim da categoria detectado - quantidade estável")
+                                logger.info("✅ Category appears exhausted — count remained stable")
                                 break
                         else:
                             novos = len(todas_urls) - ultima_quantidade
-                            logger.info(f"✨ Novos produtos: +{novos} (total: {len(todas_urls)})")
+                            logger.info(f"✨ New products discovered: +{novos} (total: {len(todas_urls)})")
                             contagem_mesma_quantidade = 0
                             ultima_quantidade = len(todas_urls)
                         
                         num_scrolls += 1
-                        logger.info(f"📜 Rolagem {num_scrolls} - Total: {len(todas_urls)} produtos")
+                        logger.info(f"📜 Scroll {num_scrolls} - Total products: {len(todas_urls)}")
                         
-                        # Salva checkpoint a cada BATCH_SIZE produtos
+                        # Persist checkpoint once the batch size is reached
                         if len(todas_urls) - ultimo_checkpoint_size >= BATCH_SIZE:
                             salvar_checkpoint(checkpoint_file, todas_urls, num_scrolls, proxima_posicao)
                             ultimo_checkpoint_size = len(todas_urls)
                         
-                        # Se está no modo teste e atingiu o limite de URLs, para
+                        # Stop early when running in test mode
                         if modo_teste and len(todas_urls) >= 5:
-                            logger.info("✅ Modo teste: limite de 5 URLs atingido")
+                            logger.info("✅ Test mode limit of 5 URLs reached")
                             break
                         
-                        # Tenta clicar no botão "Carregar mais" se existir
+                        # Click the “load more” button when available
                         try:
                             botao_carregar = driver.find_element(By.CSS_SELECTOR, "button[class*='load-more']")
                             if botao_carregar.is_displayed():
                                 botao_carregar.click()
                                 time.sleep(5)
-                                logger.info("🔘 Clicou no botão 'Carregar mais'")
+                                logger.info("🔘 Clicked the 'load more' button")
                         except:
                             pass
                     
-                    # Coleta finalizada com sucesso
-                    logger.info(f"🎉 Coleta finalizada: {len(todas_urls)} produtos coletados")
+                    # Successful completion
+                    logger.info(f"🎉 Harvest finished: {len(todas_urls)} product(s) collected")
                     
-                    # Limpa o checkpoint após sucesso
+                    # Remove checkpoint now that the run succeeded
                     limpar_checkpoint(checkpoint_file)
                     
                     return todas_urls
@@ -573,13 +593,13 @@ class URLCollector:
                 except Exception as e:
                     error_str = str(e)
                     
-                    # Verifica se é um crash de tab
+                    # Identify browser crashes
                     if "tab crashed" in error_str.lower() or "session deleted" in error_str.lower():
                         crash_count += 1
-                        logger.error(f"💥 Tab crashou! (tentativa {crash_count}/{MAX_RETRY_CRASHES})")
-                        logger.warning(f"⚠️  Erro: {error_str}")
+                        logger.error(f"💥 Tab crashed! (attempt {crash_count}/{MAX_RETRY_CRASHES})")
+                        logger.warning(f"⚠️  Error: {error_str}")
                         
-                        # Salva checkpoint antes de tentar recuperar
+                        # Persist state before retrying
                         if todas_urls:
                             posicao_atual = 0
                             try:
@@ -588,7 +608,7 @@ class URLCollector:
                                 pass
                             salvar_checkpoint(checkpoint_file, todas_urls, num_scrolls, posicao_atual)
                         
-                        # Fecha o driver crashado
+                        # Close the crashed driver
                         try:
                             if driver:
                                 driver.quit()
@@ -596,12 +616,12 @@ class URLCollector:
                             pass
                         driver = None
                         
-                        # Se ainda tem tentativas, aguarda e tenta novamente
+                        # Retry if we still have attempts left
                         if crash_count < MAX_RETRY_CRASHES:
-                            logger.info(f"⏳ Aguardando 10 segundos antes de tentar novamente...")
+                            logger.info("⏳ Waiting 10 seconds before retrying...")
                             time.sleep(10)
                             
-                            # Recarrega checkpoint para ter certeza
+                            # Reload checkpoint to ensure state is up to date
                             checkpoint = carregar_checkpoint(checkpoint_file)
                             if checkpoint:
                                 todas_urls = checkpoint['urls']
@@ -609,27 +629,27 @@ class URLCollector:
                                 num_scrolls_inicial = checkpoint['num_scrolls']
                                 posicao_scroll_inicial = checkpoint['posicao_scroll']
                             
-                            continue  # Tenta novamente
+                            continue  # Try again
                         else:
-                            logger.error(f"❌ Número máximo de tentativas após crashes atingido")
-                            logger.info(f"📊 Retornando {len(todas_urls)} produtos coletados até o momento")
+                            logger.error("❌ Maximum number of retries reached after crashes")
+                            logger.info(f"📊 Returning {len(todas_urls)} product(s) collected so far")
                             return todas_urls
                     else:
-                        # Outro tipo de erro, propaga
+                        # Propagate non-crash errors
                         raise
             
-            # Se saiu do loop sem retornar, retorna o que tem
-            logger.info(f"📊 Retornando {len(todas_urls)} produtos coletados")
+            # If we exit the loop without returning, hand back what we gathered
+            logger.info(f"📊 Returning {len(todas_urls)} product(s) collected")
             return todas_urls
             
         except Exception as e:
-            logger.error(f"❌ Erro ao coletar URLs: {str(e)}")
+            logger.error(f"❌ Unexpected error while collecting URLs: {str(e)}")
             
-            # Tenta salvar checkpoint em caso de erro não tratado
+            # Attempt to persist state even when an unexpected error occurs
             if 'todas_urls' in locals() and todas_urls:
                 try:
                     salvar_checkpoint(checkpoint_file, todas_urls, num_scrolls if 'num_scrolls' in locals() else 0, 0)
-                    logger.info(f"💾 Checkpoint de emergência salvo com {len(todas_urls)} produtos")
+                    logger.info(f"💾 Emergency checkpoint saved with {len(todas_urls)} product(s)")
                 except:
                     pass
             
@@ -640,26 +660,26 @@ class URLCollector:
                 try:
                     driver.quit()
                 except Exception as e:
-                    logger.error(f"Erro ao fechar o driver: {str(e)}")
+                    logger.error(f"Error while closing driver: {str(e)}")
                 driver = None
     
     def salvar_urls_csv(self, urls, nome_arquivo=None):
-        """Salva as URLs coletadas em um arquivo CSV."""
+        """Persist collected URLs to a CSV file."""
         try:
             if not urls:
-                logger.warning("Nenhuma URL para salvar")
+                logger.warning("No URLs to persist — skipping export")
                 return
                 
             if not nome_arquivo:
                 nome_arquivo = f"urls_produtos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
                 
-            # Cria DataFrame e salva
+            # Create DataFrame and save
             df = pd.DataFrame(urls)
             df.to_csv(nome_arquivo, index=False)
-            logger.info(f"URLs salvas em: {nome_arquivo}")
+            logger.info(f"URLs exported to: {nome_arquivo}")
             
         except Exception as e:
-            logger.error(f"Erro ao salvar URLs: {str(e)}")
+            logger.error(f"Failed to export URLs: {str(e)}")
 
 if __name__ == "__main__":
-    logger.info("Este arquivo não deve ser executado diretamente. Use o api.py") 
+    logger.info("This module is not meant to be executed directly. Use main.py or the CLI entry points.") 
